@@ -1,5 +1,6 @@
 package cs489.asd.lab.controller;
 
+import cs489.asd.lab.controller.common.PatientNotFoundException;
 import cs489.asd.lab.dto.AddressResponse;
 import cs489.asd.lab.dto.PatientRequest;
 import cs489.asd.lab.dto.PatientResponse;

@@ -1,6 +1,6 @@
 package cs489.asd.lab.service;
 
-import cs489.asd.lab.controller.BusinessRuleViolationException;
+import cs489.asd.lab.controller.common.BusinessRuleViolationException;
 import cs489.asd.lab.dto.AppointmentDetailsView;
 import cs489.asd.lab.dto.AppointmentRequest;
 import cs489.asd.lab.dto.AppointmentResponse;
