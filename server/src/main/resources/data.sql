@@ -1,80 +1,80 @@
 -- Seed data for schema1
--- Parent tables first, then dependent tables.
-
--- emty the tables before inserting data
--- DELETE FROM schema1.user_roles WHERE user_id IN (1, 2, 3, 4, 5);
--- DELETE FROM schema1.users WHERE user_id IN (1, 2, 3, 4, 5);
--- DELETE FROM schema1.roles WHERE role_id IN (1, 2, 3, 4, 5);
--- DELETE FROM schema1.bills   WHERE bill_id IN (1, 2, 3, 4, 5);
--- DELETE FROM schema1.appointments    WHERE appointment_id IN (1, 2, 3, 4, 5);
--- DELETE FROM schema1.addresses WHERE address_id IN (1, 2, 3, 4, 5);
--- DELETE FROM schema1.surgeries   WHERE surgery_id IN (1, 2, 3, 4, 5);
--- DELETE FROM schema1.dentists WHERE dentist_id IN (1, 2, 3, 4, 5);
--- DELETE FROM schema1.patients WHERE patient_id IN (1, 2, 3, 4, 5);
 
 
+-- clear all tables first to avoid conflicts with existing data
+DELETE FROM schema1.bills;
+DELETE FROM schema1.appointments;
+DELETE FROM schema1.appointment_statuses;
+DELETE FROM schema1.surgeries;
+DELETE FROM schema1.patients;
+DELETE FROM schema1.dentists;
+DELETE FROM schema1.managers;
+DELETE FROM schema1.users;
+DELETE FROM schema1.roles;
 
-INSERT INTO schema1.patients (patient_id, first_name, last_name, contact_phone, email, date_of_birth) VALUES
-    (1, 'John', 'Smith', '555-0101', 'john.smith@example.com', '1988-02-14'),
-    (2, 'Emma', 'Johnson', '555-0102', 'emma.johnson@example.com', '1992-09-30'),
-    (3, 'Liam', 'Davis', '555-0103', 'liam.davis@example.com', '1985-06-11'),
-    (4, 'Olivia', 'Martinez', '555-0104', 'olivia.martinez@example.com', '1995-01-22'),
-    (5, 'Noah', 'Wilson', '555-0105', 'noah.wilson@example.com', '1979-12-03');
+INSERT INTO schema1.roles (role_id, role_name)
+VALUES (1, 'MANAGER'),
+       (2, 'DENTIST'),
+       (3, 'PATIENT');
 
-INSERT INTO schema1.dentists (dentist_id, first_name, last_name, phone, email, specialization) VALUES
-    (1, 'Alice', 'Brown', '555-0201', 'alice.brown@example.com', 'Orthodontics'),
-    (2, 'Michael', 'Nguyen', '555-0202', 'michael.nguyen@example.com', 'Endodontics'),
-    (3, 'Sophia', 'Taylor', '555-0203', 'sophia.taylor@example.com', 'Prosthodontics'),
-    (4, 'Ethan', 'Harris', '555-0204', 'ethan.harris@example.com', 'Pediatric Dentistry'),
-    (5, 'Ava', 'Lopez', '555-0205', 'ava.lopez@example.com', 'Periodontics');
+INSERT INTO schema1.users (user_id, first_name, last_name, email, phone_number, password, enabled, role_id)
+VALUES (1, 'Admin', 'User', 'admin@example.com', '555-0001', '{noop}admin123', TRUE, 1),
+       (2, 'Alice', 'Brown', 'alice.brown@example.com', '555-0201', '{noop}dentist123', TRUE, 2),
+       (3, 'Michael', 'Nguyen', 'dentist1@example.com', '555-0202', '{noop}dentist123', TRUE, 2),
+       (4, 'Sophia', 'Taylor', 'dentist2@example.com', '555-0203', '{noop}dentist123', TRUE, 2),
+       (5, 'Ethan', 'Harris', 'ethan.harris@example.com', '555-0204', '{noop}dentist123', TRUE, 2),
+       (6, 'Ava', 'Lopez', 'ava.lopez@example.com', '555-0205', '{noop}dentist123', TRUE, 2),
+       (7, 'John', 'Smith', 'john.smith@example.com', '555-0101', '{noop}patient123', TRUE, 3),
+       (8, 'Emma', 'Johnson', 'patient1@example.com', '555-0102', '{noop}patient123', TRUE, 3),
+       (9, 'Liam', 'Davis', 'patient2@example.com', '555-0103', '{noop}patient123', TRUE, 3),
+       (10, 'Olivia', 'Martinez', 'olivia.martinez@example.com', '555-0104', '{noop}patient123', TRUE, 3),
+       (11, 'Noah', 'Wilson', 'noah.wilson@example.com', '555-0105', '{noop}patient123', TRUE, 3);
 
-INSERT INTO schema1.surgeries (surgery_id, name, location_address, telephone_number) VALUES
-    (1, 'Main Street Dental Surgery', '100 Main Street, Boston', '555-0301'),
-    (2, 'North Clinic Surgery', '25 North Avenue, Cambridge', '555-0302'),
-    (3, 'Harbor Dental Care', '14 Harbor Road, Quincy', '555-0303'),
-    (4, 'Lakeside Family Surgery', '78 Lake Street, Somerville', '555-0304'),
-    (5, 'Downtown Smile Studio', '220 Center Plaza, Salem', '555-0305');
+INSERT INTO schema1.dentists (user_id, dentist_id_number, specialization)
+VALUES (2, 'D001', 'Orthodontics'),
+       (3, 'D002', 'Endodontics'),
+       (4, 'D003', 'Prosthodontics'),
+       (5, 'D004', 'Pediatric Dentistry'),
+       (6, 'D005', 'Periodontics');
 
-INSERT INTO schema1.addresses (address_id, patient_id, mailing_address, city) VALUES
-    (1, 1, '12 Oak Lane, Boston, MA 02110', 'Boston'),
-    (2, 2, '88 River Road, Cambridge, MA 02139', 'Cambridge'),
-    (3, 3, '45 Pine Street, Quincy, MA 02169', 'Quincy'),
-    (4, 4, '9 Maple Avenue, Somerville, MA 02144', 'Somerville'),
-    (5, 5, '300 Elm Road, Salem, MA 01970', 'Salem');
+INSERT INTO schema1.patients (user_id, date_of_birth, mailing_address)
+VALUES (7, '1988-02-14', '12 Oak Lane, Boston, MA 02110'),
+       (8, '1992-09-30', '88 River Road, Cambridge, MA 02139'),
+       (9, '1985-06-11', '45 Pine Street, Quincy, MA 02169'),
+       (10, '1995-01-22', '9 Maple Avenue, Somerville, MA 02144'),
+       (11, '1979-12-03', '300 Elm Road, Salem, MA 01970');
 
-INSERT INTO schema1.appointments (appointment_id, appointment_date_time, dentist_id, patient_id, surgery_id, status) VALUES
-    (1, '2026-04-20 09:00:00', 1, 1, 1, 'SCHEDULED'),
-    (2, '2026-04-20 10:30:00', 2, 2, 2, 'COMPLETED'),
-    (3, '2026-04-21 11:15:00', 3, 3, 3, 'SCHEDULED'),
-    (4, '2026-04-21 13:00:00', 4, 4, 4, 'CANCELLED'),
-    (5, '2026-04-22 14:45:00', 5, 5, 5, 'COMPLETED');
+-- seed 3 managers
+INSERT INTO schema1.managers (user_id, office_location)
+VALUES (1, 'Head Office, Boston');
 
-INSERT INTO schema1.bills (bill_id, amount, paid, patient_id) VALUES
-    (1, 180.00, FALSE, 1),
-    (2, 95.50, TRUE, 2),
-    (3, 220.75, FALSE, 3),
-    (4, 140.00, TRUE, 4),
-    (5, 310.25, FALSE, 5);
+INSERT INTO schema1.appointment_statuses (status_id, status_name)
+VALUES (1, 'PENDING'),
+       (2, 'SCHEDULED'),
+       (3, 'COMPLETED'),
+       (4, 'CANCELLED');
 
-INSERT INTO schema1.roles (role_id, name) VALUES
-    (1, 'ADMIN'),
-    (2, 'STAFF'),
-    (3, 'DENTIST'),
-    (4, 'HYGIENIST'),
-    (5, 'PATIENT');
-
-INSERT INTO schema1.users (user_id, username, password, enabled) VALUES
-    (1, 'admin', '{noop}admin123', TRUE),
-    (2, 'staff', '{noop}staff123', TRUE),
-    (3, 'dentist', '{noop}dentist123', TRUE),
-    (4, 'hygienist', '{noop}hygienist123', TRUE),
-    (5, 'patient', '{noop}patient123', TRUE);
-
-INSERT INTO schema1.user_roles (user_id, role_id) VALUES
-    (1, 1),
-    (2, 2),
-    (3, 3),
-    (4, 4),
-    (5, 5);
+-- from table.sql: seed data for appointments
 
 
+INSERT INTO schema1.surgeries (surgery_id, name, location_address, telephone_number)
+VALUES (1, 'Main Street Dental Surgery', '100 Main Street, Boston', '555-0301'),
+       (2, 'North Clinic Surgery', '25 North Avenue, Cambridge', '555-0302'),
+       (3, 'Harbor Dental Care', '14 Harbor Road, Quincy', '555-0303'),
+       (4, 'Lakeside Family Surgery', '78 Lake Street, Somerville', '555-0304'),
+       (5, 'Downtown Smile Studio', '220 Center Plaza, Salem', '555-0305');
+
+INSERT INTO schema1.appointments (appointment_id, patient_user_id, dentist_user_id, appointment_date_time, surgery_id,
+                                  status_id)
+VALUES (1, 7, 2, '2024-07-01 10:00:00', 1, 2),
+       (2, 8, 3, '2024-07-02 11:30:00', 2, 2),
+       (3, 9, 4, '2024-07-03 14:00:00', 3, 2),
+       (4, 10, 5, '2024-07-04 09:00:00', 4, 2),
+       (5, 11, 6, '2024-07-05 15:30:00', 5, 2);
+
+INSERT INTO schema1.bills (bill_id, amount, paid, patient_user_id)
+VALUES (1, 180.00, FALSE, 7),
+       (2, 95.50, TRUE, 8),
+       (3, 220.75, FALSE, 9),
+       (4, 140.00, TRUE, 10),
+       (5, 310.25, FALSE, 11);
