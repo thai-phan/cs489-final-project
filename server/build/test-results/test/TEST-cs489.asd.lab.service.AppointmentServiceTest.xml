@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="cs489.asd.lab.service.AppointmentServiceTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-04-22T01:52:53.292Z" hostname="tpmac.local" time="0.466">
+<testsuite name="cs489.asd.lab.service.AppointmentServiceTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-04-22T04:23:16.974Z" hostname="tpmac.local" time="0.505">
   <properties/>
-  <testcase name="requestAppointment_savesWhenRulesAreSatisfied()" classname="cs489.asd.lab.service.AppointmentServiceTest" time="0.447"/>
-  <testcase name="requestAppointment_rejectsWhenDentistAlreadyHasFiveAppointmentsInWeek()" classname="cs489.asd.lab.service.AppointmentServiceTest" time="0.006"/>
+  <testcase name="requestAppointment_savesWhenRulesAreSatisfied()" classname="cs489.asd.lab.service.AppointmentServiceTest" time="0.484"/>
+  <testcase name="requestAppointment_rejectsWhenDentistAlreadyHasFiveAppointmentsInWeek()" classname="cs489.asd.lab.service.AppointmentServiceTest" time="0.007"/>
   <testcase name="getAppointmentsByPatientAndDate_rejectsInvalidDateFormat()" classname="cs489.asd.lab.service.AppointmentServiceTest" time="0.002"/>
-  <testcase name="getAppointmentsBySurgeryLocation_requiresNonBlankLocation()" classname="cs489.asd.lab.service.AppointmentServiceTest" time="0.002"/>
-  <testcase name="requestAppointment_rejectsWhenPatientHasUnpaidBill()" classname="cs489.asd.lab.service.AppointmentServiceTest" time="0.003"/>
+  <testcase name="getAppointmentsBySurgeryLocation_requiresNonBlankLocation()" classname="cs489.asd.lab.service.AppointmentServiceTest" time="0.001"/>
+  <testcase name="requestAppointment_rejectsWhenPatientHasUnpaidBill()" classname="cs489.asd.lab.service.AppointmentServiceTest" time="0.002"/>
   <testcase name="getAppointmentsByPatientAndDate_returnsFilteredResults()" classname="cs489.asd.lab.service.AppointmentServiceTest" time="0.003"/>
   <testcase name="getAppointmentsByDentist_includesPatientDetails()" classname="cs489.asd.lab.service.AppointmentServiceTest" time="0.002"/>
   <system-out><![CDATA[]]></system-out>

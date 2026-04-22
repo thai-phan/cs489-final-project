@@ -1,0 +1,33 @@
+# OS files
+.DS_Store
+
+# IDE files
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+client/.env
+client/.env.*
+!client/.env.example
+server/.env
+server/.env.*
+!server/.env.example
+
+# Java/Gradle (server)
+server/.gradle/
+server/build/
+
+# Node/Vite (client)
+client/node_modules/
+client/dist/
+client/.vite/
+
+# Test and coverage artifacts
+coverage/
+

@@ -24,6 +24,7 @@ services:
       dockerfile: server/Dockerfile
     container_name: ads-backend
     environment:
+      SPRING_PROFILES_ACTIVE: local
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cs489-project
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres

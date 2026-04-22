@@ -1,68 +1,134 @@
-# ADS Spring Boot MVC + PostgreSQL
+# ADS Backend (Spring Boot + GraphQL + PostgreSQL)
 
-This project now includes a minimal Spring Boot MVC app backed by PostgreSQL.
+Backend service for the CS489 final project.
 
-## Files
-- `src/main/java/org/example/AdsApplication.java`
-- `src/main/java/org/example/web/HealthController.java`
+## Tech Stack
+
+- Spring Boot (Web, Security, GraphQL, Data JPA)
+- PostgreSQL
+- Gradle (Java 17 toolchain)
+- JWT-based authentication
+
+## Key Paths
+
+- `src/main/java/cs489/asd/lab/Application.java`
+- `src/main/java/cs489/asd/lab/controller/HealthController.java`
+- `src/main/java/cs489/asd/lab/controller/AuthController.java`
+- `src/main/java/cs489/asd/lab/controller/graphql/`
 - `src/main/resources/application.properties`
-- `src/main/resources/config/application.properties` for the earlier JDBC smoke test
-- `src/main/resources/sqlite/ads_schema.sql` for the SQLite ADS schema
-- `src/main/resources/sqlite/ads_seed.sql` for repeatable sample data
-- `src/main/resources/sqlite/ads.db` for the generated SQLite database
+- `src/main/resources/graphql/schema.graphqls`
+- `src/main/resources/schema.sql`
+- `src/main/resources/data.sql`
 
-## Run
+## Run Locally
+
+From `server/`:
 
 ```bash
 ./gradlew bootRun
 ```
 
-Then open:
-- `http://localhost:8080/` for the MVC-style status response
-- `http://localhost:8080/db/ping` to verify the PostgreSQL connection
-- `http://localhost:8080/graphql` for the GraphQL endpoint
-- `http://localhost:8080/graphiql` for the GraphiQL UI
+The app uses profile-based config:
+- `local` (default): local PostgreSQL + GraphiQL enabled
+- `aws`: cloud-friendly defaults + GraphiQL disabled
 
-Example GraphQL query:
+The `local` profile uses PostgreSQL at `jdbc:postgresql://localhost:5432/cs489-project` by default.
+
+To run with the AWS profile locally for validation:
+
+```bash
+SPRING_PROFILES_ACTIVE=aws \
+SPRING_DATASOURCE_URL='jdbc:postgresql://<host>:5432/<db>' \
+SPRING_DATASOURCE_USERNAME='<username>' \
+SPRING_DATASOURCE_PASSWORD='<password>' \
+APP_JWT_SECRET='<long-random-secret>' \
+./gradlew bootRun
+```
+
+## Basic Endpoints
+
+- `GET /` service status
+- `GET /db/ping` database connectivity check
+- `POST /adsweb/api/v1/auth/register` create user and return JWT
+- `POST /adsweb/api/v1/auth/login` authenticate and return JWT
+- `POST /graphql` GraphQL endpoint (requires Bearer token)
+- `GET /graphiql` GraphiQL UI
+
+## Authentication Examples
+
+Register:
+
+```bash
+curl -X POST http://localhost:8080/adsweb/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"newuser","password":"secret123"}'
+```
+
+Login:
+
+```bash
+curl -X POST http://localhost:8080/adsweb/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"newuser","password":"secret123"}'
+```
+
+Use `accessToken` from the response as `Authorization: Bearer <token>`.
+
+## GraphQL Example
 
 ```graphql
 query {
-  patients {
-	patientId
+  dentists {
+	dentistId
 	firstName
 	lastName
-	contactPhone
 	email
-	mailingAddress
-	dateOfBirth
   }
 }
 ```
 
-If you want to run the earlier JDBC smoke test main from your IDE, execute `cs489.asd.lab.ConnectionSmokeTest`.
+Example curl (replace `<TOKEN>`):
 
-## Docker
+```bash
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -d '{"query":"query { dentists { dentistId firstName lastName email } }"}'
+```
 
-Run the full stack (PostgreSQL + backend + client):
+## Docker (From Repository Root)
 
 ```bash
 docker compose up --build
 ```
 
-Service URLs:
-- `http://localhost:5173` React client
-- `http://localhost:8080/graphql` GraphQL endpoint
-- `http://localhost:8080/graphiql` GraphiQL UI
-
-Stop and remove containers:
+Stop:
 
 ```bash
 docker compose down
 ```
 
-Stop and remove containers including database volume:
+Remove containers and DB volume:
 
 ```bash
 docker compose down -v
 ```
+
+## AWS Cloud Configuration
+
+The backend now includes `application-aws.properties` for cloud deployments.
+
+Set these environment variables in your AWS runtime (ECS/Elastic Beanstalk/EC2):
+- `SPRING_PROFILES_ACTIVE=aws`
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+- `APP_JWT_SECRET`
+
+Optional overrides:
+- `SPRING_JPA_DEFAULT_SCHEMA` (default: `schema1`)
+- `SPRING_JPA_HIBERNATE_DDL_AUTO` (default: `validate`)
+- `SPRING_SQL_INIT_MODE` (default: `never`)
+- `APP_JWT_EXPIRATION_SECONDS` (default: `3600`)
+- `PORT` (default: `8080`)
 
