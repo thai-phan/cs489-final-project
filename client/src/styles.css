@@ -5,7 +5,9 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #f4f6f8;
+  background:
+    radial-gradient(circle at top left, rgba(14, 116, 144, 0.18), transparent 28%),
+    linear-gradient(180deg, #eef6f7 0%, #f8fafc 45%, #eef2f7 100%);
   color: #1f2937;
 }
 
@@ -39,8 +41,17 @@ body {
   cursor: pointer;
 }
 
+.user-badge {
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.92rem;
+  background: rgba(15, 23, 42, 0.35);
+}
+
 main {
-  padding: 1rem;
+  padding: 1.25rem;
 }
 
 .card {
@@ -52,6 +63,11 @@ main {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
+.form-card {
+  max-width: none;
+  margin: 0;
+}
+
 .form-row {
   display: flex;
   flex-direction: column;
@@ -59,28 +75,58 @@ main {
   margin-bottom: 0.75rem;
 }
 
+.form-row--full {
+  grid-column: 1 / -1;
+}
+
 input,
+select,
+textarea,
 button {
   font: inherit;
 }
 
-input {
+input,
+select,
+textarea {
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   padding: 0.55rem;
+  background: #fff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid rgba(14, 116, 144, 0.2);
+  border-color: #0f766e;
 }
 
 .btn-primary {
   border: 0;
   border-radius: 6px;
   padding: 0.6rem 0.8rem;
-  background: #2563eb;
+  background: #0f766e;
   color: #fff;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  border: 1px solid #94a3b8;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  background: #fff;
+  color: #0f172a;
   cursor: pointer;
 }
 
 .error {
   color: #dc2626;
+  margin-top: 0.5rem;
+}
+
+.success {
+  color: #0f766e;
   margin-top: 0.5rem;
 }
 
@@ -95,8 +141,279 @@ input {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
+.dashboard-layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.public-hero {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.public-hero__intro {
+  padding: 1rem 0.5rem;
+}
+
+.public-form-card {
+  max-width: none;
+  margin: 0;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: #0f766e;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.text-area {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.section-heading {
+  margin-bottom: 1rem;
+}
+
+.section-heading h2 {
+  margin: 0 0 0.35rem;
+}
+
+.section-heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 0.9rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.dentists-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.dentists-table th,
+.dentists-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.dentists-table th {
+  color: #0f172a;
+  background: #f8fafc;
+}
+
 pre {
   white-space: pre-wrap;
   word-break: break-word;
 }
 
+/* Welcome Page Styles */
+.welcome-page {
+  padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hero-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 4rem;
+  padding: 2rem 0;
+}
+
+.hero-content h1 {
+  font-size: 2.5rem;
+  margin: 0 0 1rem;
+  color: #0f172a;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.hero-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.placeholder-image {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  border-radius: 50%;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  box-shadow: 0 10px 30px rgba(15, 118, 110, 0.3);
+}
+
+.placeholder-image span {
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+}
+
+.features-section {
+  background: #f8fafc;
+  padding: 4rem 0;
+  margin: 2rem 0;
+  border-radius: 12px;
+}
+
+.features-section h2 {
+  text-align: center;
+  margin-bottom: 3rem;
+  color: #0f172a;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+  margin: 1rem 0 0.5rem;
+  color: #0f172a;
+}
+
+.feature-card p {
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.cta-section {
+  text-align: center;
+  padding: 4rem 0;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: white;
+  border-radius: 12px;
+  margin-top: 2rem;
+}
+
+.cta-section h2 {
+  margin-bottom: 1rem;
+}
+
+.cta-section p {
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (max-width: 920px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .public-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading-row {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-nav {
+    flex-direction: column;
+    align-items: start;
+    gap: 0.75rem;
+  }
+
+  .top-nav nav {
+    flex-wrap: wrap;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .hero-buttons {
+    justify-content: center;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+}

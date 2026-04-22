@@ -1,30 +1,78 @@
 import { useState } from "react";
-import { graphqlRequest } from "../api/graphqlApi";
+import { restRequest } from "../api/restApi";
 import { useAuth } from "../auth/AuthContext";
+import DentistDirectory from "../components/DentistDirectory";
+import DentistRegistrationForm from "../components/DentistRegistrationForm";
 
-const DENTISTS_QUERY = `
-  query {
-    dentists {
-      dentistId
-      firstName
-      lastName
-      email
-      specialization
-    }
-  }
-`;
+const INITIAL_FORM = {
+  dentistId: "",
+  firstName: "",
+  lastName: "",
+  phone: "",
+  email: "",
+  specialization: ""
+};
 
 export default function DashboardPage() {
   const { token } = useAuth();
+  const [form, setForm] = useState(INITIAL_FORM);
+  const [registrations, setRegistrations] = useState([]);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const dentists = [...registrations, ...(result ?? [])];
+
+  function updateField(field, value) {
+    setForm(current => ({ ...current, [field]: value }));
+  }
+
+  function onSubmit(event) {
+    event.preventDefault();
+    const trimmed = Object.fromEntries(
+      Object.entries(form).map(([key, value]) => [key, value.trim()])
+    );
+
+    if (!/^\d+$/.test(trimmed.dentistId)) {
+      setFormError("Dentist ID must be a numeric value.");
+      setFormSuccess("");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed.email)) {
+      setFormError("Enter a valid email address.");
+      setFormSuccess("");
+      return;
+    }
+
+    if (dentists.some(dentist => String(dentist.dentistId) === trimmed.dentistId)) {
+      setFormError("Dentist ID already exists in the current list.");
+      setFormSuccess("");
+      return;
+    }
+
+    const newDentist = {
+      dentistId: Number(trimmed.dentistId),
+      firstName: trimmed.firstName,
+      lastName: trimmed.lastName,
+      phone: trimmed.phone,
+      email: trimmed.email,
+      specialization: trimmed.specialization
+    };
+
+    setRegistrations(current => [newDentist, ...current]);
+    setForm(INITIAL_FORM);
+    setFormError("");
+    setFormSuccess("Dentist registration has been captured in the UI.");
+  }
 
   async function loadDentists() {
     setLoading(true);
     setError("");
     try {
-      const data = await graphqlRequest(token, DENTISTS_QUERY);
+      const data = await restRequest(token, "GET", "/adsweb/api/v1/dentists");
       setResult(data);
     } catch (err) {
       setError(err.message);
@@ -34,15 +82,25 @@ export default function DashboardPage() {
   }
 
   return (
-    <section className="results">
-      <h2>Dashboard</h2>
-      <p className="muted">Use this button to verify authenticated GraphQL calls.</p>
-      <button className="btn-primary" onClick={loadDentists} disabled={loading}>
-        {loading ? "Loading..." : "Load Dentists"}
-      </button>
-      {error && <p className="error">{error}</p>}
-      {result && <pre>{JSON.stringify(result, null, 2)}</pre>}
-    </section>
+    <div className="dashboard-layout">
+      <DentistRegistrationForm
+        form={form}
+        onFieldChange={updateField}
+        onSubmit={onSubmit}
+        onClear={() => {
+          setForm(INITIAL_FORM);
+          setFormError("");
+          setFormSuccess("");
+        }}
+        formError={formError}
+        formSuccess={formSuccess}
+      />
+      <DentistDirectory
+        dentists={dentists}
+        loading={loading}
+        error={error}
+        onLoadDentists={loadDentists}
+      />
+    </div>
   );
 }
-

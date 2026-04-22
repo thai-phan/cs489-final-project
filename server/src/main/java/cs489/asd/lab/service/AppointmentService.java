@@ -140,6 +140,14 @@ public class AppointmentService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<AppointmentDetailsView> getPendingAppointments() {
+        return appointmentRepository.findPendingAppointmentsOrderByDateTimeAsc()
+                .stream()
+                .map(this::toDetailsView)
+                .toList();
+    }
+
     private void validateRequest(AppointmentRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("Appointment payload is required");

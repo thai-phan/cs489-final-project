@@ -2,29 +2,38 @@ import { createContext, useContext, useMemo, useState } from "react";
 
 const AuthContext = createContext(null);
 const TOKEN_KEY = "ads_auth_token";
-const USERNAME_KEY = "ads_auth_username";
+const EMAIL_KEY = "ads_auth_email";
+const ROLES_KEY = "ads_auth_roles";
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
-  const [username, setUsername] = useState(() => localStorage.getItem(USERNAME_KEY));
+  const [email, setEmail] = useState(() => localStorage.getItem(EMAIL_KEY));
+  const [roles, setRoles] = useState(() => {
+    const savedRoles = localStorage.getItem(ROLES_KEY);
+    return savedRoles ? JSON.parse(savedRoles) : [];
+  });
 
-  const login = (nextToken, nextUsername) => {
+  const login = (nextToken, nextEmail, nextRoles = []) => {
     setToken(nextToken);
-    setUsername(nextUsername);
+    setEmail(nextEmail);
+    setRoles(nextRoles);
     localStorage.setItem(TOKEN_KEY, nextToken);
-    localStorage.setItem(USERNAME_KEY, nextUsername);
+    localStorage.setItem(EMAIL_KEY, nextEmail);
+    localStorage.setItem(ROLES_KEY, JSON.stringify(nextRoles));
   };
 
   const logout = () => {
     setToken(null);
-    setUsername(null);
+    setEmail(null);
+    setRoles([]);
     localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USERNAME_KEY);
+    localStorage.removeItem(EMAIL_KEY);
+    localStorage.removeItem(ROLES_KEY);
   };
 
   const value = useMemo(
-    () => ({ token, username, login, logout }),
-    [token, username]
+    () => ({ token, email, roles, login, logout }),
+    [token, email, roles]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -37,4 +46,3 @@ export function useAuth() {
   }
   return context;
 }
-

@@ -59,4 +59,10 @@ public class AppointmentQL {
     public List<AppointmentDetailsView> myAppointments(@AuthenticationPrincipal UserDetails userDetails) {
         return appointmentService.getAppointmentsForCurrentPatient(userDetails.getUsername());
     }
+
+    @QueryMapping
+    @PreAuthorize("hasAnyRole('ADMIN','DENTIST')")
+    public List<AppointmentDetailsView> pendingAppointments() {
+        return appointmentService.getPendingAppointments();
+    }
 }

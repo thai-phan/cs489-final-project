@@ -14,6 +14,8 @@ import cs489.asd.lab.repository.BillRepository;
 import cs489.asd.lab.repository.DentistRepository;
 import cs489.asd.lab.repository.PatientRepository;
 import cs489.asd.lab.repository.SurgeryRepository;
+import cs489.asd.lab.repository.UserRepository;
+import cs489.asd.lab.repository.AppointmentStatusRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +48,10 @@ class AppointmentServiceTest {
     private DentistRepository dentistRepository;
     @Mock
     private SurgeryRepository surgeryRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private AppointmentStatusRepository appointmentStatusRepository;
 
     private AppointmentService appointmentService;
 
@@ -56,7 +62,9 @@ class AppointmentServiceTest {
                 billRepository,
                 patientRepository,
                 dentistRepository,
-                surgeryRepository
+                surgeryRepository,
+                userRepository,
+                appointmentStatusRepository
         );
     }
 
@@ -113,7 +121,7 @@ class AppointmentServiceTest {
         assertEquals(1, results.size());
         assertEquals(77L, results.get(0).appointmentId());
         assertEquals("2026-04-20T09:00", results.get(0).appointmentDateTime());
-        assertEquals(1L, results.get(0).patient().patientId());
+        assertEquals(1L, results.get(0).patient().userId());
         assertEquals("John", results.get(0).patient().firstName());
         assertEquals("100 Main Street, Boston", results.get(0).surgeryLocation());
     }
@@ -142,26 +150,35 @@ class AppointmentServiceTest {
     }
 
     private void stubLookups() {
-        Patient patient = new Patient("John", "Smith", "555-0101", "john.smith@example.com", "12 Oak Lane, Boston", LocalDate.of(1988, 2, 14));
-        patient.setPatientId(1L);
+        Patient patient = new Patient();
+        patient.setUserId(1L);
+        patient.setDateOfBirth(LocalDate.of(1988, 2, 14));
+        patient.setMailingAddress("12 Oak Lane, Boston");
 
         Dentist dentist = new Dentist();
-        dentist.setDentistId(2L);
+        dentist.setUserId(2L);
 
         Surgery surgery = new Surgery();
         surgery.setSurgeryId(3L);
 
+        AppointmentStatus scheduled = new AppointmentStatus();
+        scheduled.setStatusId(2L);
+        scheduled.setStatusName("SCHEDULED");
+
         when(patientRepository.findById(1L)).thenReturn(Optional.of(patient));
         when(dentistRepository.findById(2L)).thenReturn(Optional.of(dentist));
         when(surgeryRepository.findById(3L)).thenReturn(Optional.of(surgery));
+        when(appointmentStatusRepository.findByName("SCHEDULED")).thenReturn(Optional.of(scheduled));
     }
 
     private Appointment createAppointment(long appointmentId, long dentistId, long patientId, long surgeryId, LocalDateTime dateTime) {
-        Patient patient = new Patient("John", "Smith", "555-0101", "john.smith@example.com", "12 Oak Lane, Boston", LocalDate.of(1988, 2, 14));
-        patient.setPatientId(patientId);
+        Patient patient = new Patient();
+        patient.setUserId(patientId);
+        patient.setDateOfBirth(LocalDate.of(1988, 2, 14));
+        patient.setMailingAddress("12 Oak Lane, Boston");
 
         Dentist dentist = new Dentist();
-        dentist.setDentistId(dentistId);
+        dentist.setUserId(dentistId);
 
         Surgery surgery = new Surgery();
         surgery.setSurgeryId(surgeryId);
@@ -173,8 +190,9 @@ class AppointmentServiceTest {
         appointment.setDentist(dentist);
         appointment.setPatient(patient);
         appointment.setSurgery(surgery);
-        appointment.setStatus(AppointmentStatus.SCHEDULED);
+        AppointmentStatus status = new AppointmentStatus();
+        status.setStatusName("SCHEDULED");
+        appointment.setStatus(status);
         return appointment;
     }
 }
-

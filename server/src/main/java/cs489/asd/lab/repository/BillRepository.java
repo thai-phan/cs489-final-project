@@ -15,7 +15,7 @@ public class BillRepository {
 
     public boolean existsUnpaidByPatientId(long patientId) {
         Long count = entityManager.createQuery(
-                        "select count(b) from Bill b where b.patient.patientId = :patientId and b.paid = false",
+                        "select count(b) from Bill b where b.patient.userId = :patientId and b.paid = false",
                         Long.class)
                 .setParameter("patientId", patientId)
                 .getSingleResult();

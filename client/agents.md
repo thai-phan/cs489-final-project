@@ -1,0 +1,5 @@
+Role for client:
+
+ROLE_PATIENT
+ROLE_MANAGER
+ROLE_DENTIST

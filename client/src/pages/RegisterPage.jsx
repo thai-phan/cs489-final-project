@@ -6,7 +6,7 @@ import { useAuth } from "../auth/AuthContext";
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [form, setForm] = useState({ username: "", password: "", confirmPassword: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "", phoneNumber: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,8 +20,8 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
     try {
-      const response = await registerRequest(form.username, form.password);
-      login(response.accessToken, response.username);
+      const response = await registerRequest(form.firstName, form.lastName, form.email, form.password, form.phoneNumber);
+      login(response.accessToken, response.email, response.roles);
       navigate("/", { replace: true });
     } catch (err) {
       setError(err.message);
@@ -35,11 +35,30 @@ export default function RegisterPage() {
       <h2>Register</h2>
       <form onSubmit={onSubmit}>
         <div className="form-row">
-          <label htmlFor="new-username">Username</label>
+          <label htmlFor="first-name">First Name</label>
           <input
-            id="new-username"
-            value={form.username}
-            onChange={(event) => setForm({ ...form, username: event.target.value })}
+            id="first-name"
+            value={form.firstName}
+            onChange={(event) => setForm({ ...form, firstName: event.target.value })}
+            required
+          />
+        </div>
+        <div className="form-row">
+          <label htmlFor="last-name">Last Name</label>
+          <input
+            id="last-name"
+            value={form.lastName}
+            onChange={(event) => setForm({ ...form, lastName: event.target.value })}
+            required
+          />
+        </div>
+        <div className="form-row">
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            value={form.email}
+            onChange={(event) => setForm({ ...form, email: event.target.value })}
             required
           />
         </div>
@@ -63,6 +82,15 @@ export default function RegisterPage() {
             required
           />
         </div>
+        <div className="form-row">
+          <label htmlFor="phone-number">Phone Number</label>
+          <input
+            id="phone-number"
+            value={form.phoneNumber}
+            onChange={(event) => setForm({ ...form, phoneNumber: event.target.value })}
+            required
+          />
+        </div>
 
         <button className="btn-primary" type="submit" disabled={loading}>
           {loading ? "Creating account..." : "Create account"}
@@ -75,4 +103,3 @@ export default function RegisterPage() {
     </section>
   );
 }
-

@@ -7,7 +7,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,9 +18,15 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const response = await loginRequest(form.username, form.password);
-      login(response.accessToken, response.username);
-      navigate(from, { replace: true });
+      const response = await loginRequest(form.email, form.password);
+      login(response.accessToken, response.email, response.roles);
+
+      // Redirect based on role
+      if (response.roles.includes("ROLE_PATIENT")) {
+        navigate("/appointments", { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -33,11 +39,12 @@ export default function LoginPage() {
       <h2>Login</h2>
       <form onSubmit={onSubmit}>
         <div className="form-row">
-          <label htmlFor="username">Username</label>
+          <label htmlFor="email">Email</label>
           <input
-            id="username"
-            value={form.username}
-            onChange={(event) => setForm({ ...form, username: event.target.value })}
+            id="email"
+            type="email"
+            value={form.email}
+            onChange={(event) => setForm({ ...form, email: event.target.value })}
             required
           />
         </div>
@@ -63,4 +70,3 @@ export default function LoginPage() {
     </section>
   );
 }
-

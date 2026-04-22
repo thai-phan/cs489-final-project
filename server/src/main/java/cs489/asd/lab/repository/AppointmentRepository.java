@@ -87,6 +87,21 @@ public class AppointmentRepository {
                 .getResultList();
     }
 
+    public List<Appointment> findPendingAppointmentsOrderByDateTimeAsc() {
+        return entityManager.createQuery(
+                        "select a from Appointment a " +
+                                "join fetch a.dentist d " +
+                                "join fetch a.patient p " +
+                                "join fetch a.surgery s " +
+                                "where a.status.statusName <> :completed " +
+                                "and a.status.statusName <> :cancelled " +
+                                "order by a.appointmentDateTime asc, a.appointmentId asc",
+                        Appointment.class)
+                .setParameter("completed", "COMPLETED")
+                .setParameter("cancelled", "CANCELLED")
+                .getResultList();
+    }
+
     @Transactional
     public Appointment save(Appointment appointment) {
         if (appointment.getAppointmentId() == null) {

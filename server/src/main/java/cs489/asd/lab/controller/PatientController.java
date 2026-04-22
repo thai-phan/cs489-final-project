@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/adsweb/api/v1")
-@PreAuthorize("hasAnyRole('ADMIN','DENTIST')")
+@PreAuthorize("hasAnyRole('MANAGER','DENTIST')")
 public class PatientController {
 
     private final PatientRepository patientRepository;
