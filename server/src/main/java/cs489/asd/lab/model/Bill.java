@@ -26,6 +26,6 @@ public class Bill {
     private boolean paid;
 
     @ManyToOne
-    @JoinColumn(name = "patient_id")
+    @JoinColumn(name = "patient_user_id")
     private Patient patient;
 }

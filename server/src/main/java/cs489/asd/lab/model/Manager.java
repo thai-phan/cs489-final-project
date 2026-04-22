@@ -6,11 +6,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "dentists")
+@Table(name = "managers")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Dentist {
+public class Manager {
     @Id
     @Column(name = "user_id")
     private Long userId;
@@ -20,9 +20,6 @@ public class Dentist {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(name = "dentist_id_number", unique = true, nullable = false)
-    private String dentistIdNumber;
-
-    @Column(name = "specialization", nullable = false)
-    private String specialization;
+    @Column(name = "office_location")
+    private String officeLocation;
 }

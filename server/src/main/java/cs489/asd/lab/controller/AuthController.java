@@ -46,12 +46,12 @@ public class AuthController {
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
     public LoginResponse login(@RequestBody LoginRequest loginRequest) {
-        if (loginRequest == null || isBlank(loginRequest.username()) || isBlank(loginRequest.password())) {
-            throw new BadCredentialsException("username and password are required");
+        if (loginRequest == null || isBlank(loginRequest.email()) || isBlank(loginRequest.password())) {
+            throw new BadCredentialsException("email and password are required");
         }
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.username(), loginRequest.password())
+                new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password())
         );
 
         return toLoginResponse(authentication);
@@ -60,26 +60,29 @@ public class AuthController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public LoginResponse register(@RequestBody RegisterRequest registerRequest) {
-        if (registerRequest == null || isBlank(registerRequest.username()) || isBlank(registerRequest.password())) {
-            throw new BadCredentialsException("username and password are required");
+        if (registerRequest == null || isBlank(registerRequest.email()) || isBlank(registerRequest.password())) {
+            throw new BadCredentialsException("email and password are required");
         }
 
-        if (userRepository.findByUsername(registerRequest.username()).isPresent()) {
-            throw new BadCredentialsException("username is already in use");
+        if (userRepository.findByEmail(registerRequest.email()).isPresent()) {
+            throw new BadCredentialsException("email is already in use");
         }
 
         Role patientRole = userRepository.findRoleByName("PATIENT")
                 .orElseThrow(() -> new IllegalStateException("Required role PATIENT not found"));
 
         User user = new User();
-        user.setUsername(registerRequest.username().trim());
+        user.setFirstName(registerRequest.firstName().trim());
+        user.setLastName(registerRequest.lastName().trim());
+        user.setEmail(registerRequest.email().trim());
+        user.setPhoneNumber(registerRequest.phoneNumber());
         user.setPassword(passwordEncoder.encode(registerRequest.password()));
         user.setEnabled(true);
-        user.getRoles().add(patientRole);
+        user.setRole(patientRole);
         userRepository.save(user);
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(registerRequest.username().trim(), registerRequest.password())
+                new UsernamePasswordAuthenticationToken(registerRequest.email().trim(), registerRequest.password())
         );
 
         return toLoginResponse(authentication);
@@ -104,4 +107,3 @@ public class AuthController {
         return value == null || value.trim().isEmpty();
     }
 }
-

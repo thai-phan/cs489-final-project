@@ -18,7 +18,7 @@ public class PatientRepository {
 
     public List<Patient> findAllByOrderByLastNameAscFirstNameAscPatientIdAsc() {
         return entityManager.createQuery(
-                        "select p from Patient p order by p.lastName asc, p.firstName asc, p.patientId asc",
+                        "select p from Patient p join fetch p.user u order by u.lastName asc, u.firstName asc, p.userId asc",
                         Patient.class)
                 .getResultList();
     }
@@ -35,14 +35,13 @@ public class PatientRepository {
             String mailingAddress
     ) {
         return entityManager.createQuery(
-                        "select p from Patient p left join p.primaryAddress a " +
-                                "where lower(p.firstName) like lower(concat('%', :firstName, '%')) " +
-                                "or lower(p.lastName) like lower(concat('%', :lastName, '%')) " +
-                                "or lower(p.email) like lower(concat('%', :email, '%')) " +
-                                "or lower(p.contactPhone) like lower(concat('%', :contactPhone, '%')) " +
-                                "or lower(a.mailingAddress) like lower(concat('%', :mailingAddress, '%')) " +
-                                "or lower(a.city) like lower(concat('%', :mailingAddress, '%')) " +
-                                "order by p.lastName asc, p.firstName asc, p.patientId asc",
+                        "select p from Patient p join p.user u " +
+                                "where lower(u.firstName) like lower(concat('%', :firstName, '%')) " +
+                                "or lower(u.lastName) like lower(concat('%', :lastName, '%')) " +
+                                "or lower(u.email) like lower(concat('%', :email, '%')) " +
+                                "or lower(u.phoneNumber) like lower(concat('%', :contactPhone, '%')) " +
+                                "or lower(p.mailingAddress) like lower(concat('%', :mailingAddress, '%')) " +
+                                "order by u.lastName asc, u.firstName asc, p.userId asc",
                         Patient.class)
                 .setParameter("firstName", firstName)
                 .setParameter("lastName", lastName)
@@ -54,7 +53,7 @@ public class PatientRepository {
 
     @Transactional
     public Patient save(Patient patient) {
-        if (patient.getPatientId() == null) {
+        if (patient.getUserId() == null) {
             entityManager.persist(patient);
             entityManager.flush();
             return patient;
@@ -69,4 +68,3 @@ public class PatientRepository {
         entityManager.remove(managed);
     }
 }
-

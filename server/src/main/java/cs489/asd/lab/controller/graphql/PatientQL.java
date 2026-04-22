@@ -1,8 +1,6 @@
 package cs489.asd.lab.controller.graphql;
 
-import cs489.asd.lab.dto.AddressView;
 import cs489.asd.lab.dto.PatientView;
-import cs489.asd.lab.model.Address;
 import cs489.asd.lab.model.Patient;
 import cs489.asd.lab.repository.PatientRepository;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -23,7 +21,7 @@ public class PatientQL {
     }
 
     @QueryMapping
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF','DENTIST','HYGIENIST')")
+    @PreAuthorize("hasAnyRole('ADMIN','DENTIST')")
     public List<PatientView> patients() {
         return patientRepository.findAllByOrderByLastNameAscFirstNameAscPatientIdAsc()
                 .stream()
@@ -32,7 +30,7 @@ public class PatientQL {
     }
 
     @QueryMapping
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF','DENTIST','HYGIENIST')")
+    @PreAuthorize("hasAnyRole('ADMIN','DENTIST')")
     public PatientView patient(@Argument long patientId) {
         return patientRepository.findById(patientId)
                 .map(this::toPatientView)
@@ -40,7 +38,7 @@ public class PatientQL {
     }
 
     @QueryMapping
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF','DENTIST','HYGIENIST')")
+    @PreAuthorize("hasAnyRole('ADMIN','DENTIST')")
     public List<PatientView> searchPatients(@Argument String searchString) {
         String term = searchString == null ? "" : searchString.trim();
         if (term.isEmpty()) {
@@ -55,40 +53,14 @@ public class PatientQL {
                 .toList();
     }
 
-    @QueryMapping
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF','DENTIST','HYGIENIST')")
-    public List<AddressView> addresses() {
-        return patientRepository.findAllByOrderByLastNameAscFirstNameAscPatientIdAsc()
-                .stream()
-                .map(this::toAddressView)
-                .sorted(Comparator.comparing(AddressView::city, String.CASE_INSENSITIVE_ORDER)
-                        .thenComparing(AddressView::lastName, String.CASE_INSENSITIVE_ORDER)
-                        .thenComparing(AddressView::firstName, String.CASE_INSENSITIVE_ORDER)
-                        .thenComparingLong(AddressView::patientId))
-                .toList();
-    }
-
     private PatientView toPatientView(Patient patient) {
         return new PatientView(
-                patient.getPatientId(),
-                patient.getFirstName(),
-                patient.getLastName(),
-                patient.getContactPhone(),
-                patient.getEmail(),
+                patient.getUserId(),
+                patient.getUser().getFirstName(),
+                patient.getUser().getLastName(),
+                patient.getUser().getPhoneNumber(),
+                patient.getUser().getEmail(),
                 patient.getMailingAddress(),
-                patient.getDateOfBirth() == null ? null : patient.getDateOfBirth().toString()
-        );
-    }
-
-    private AddressView toAddressView(Patient patient) {
-        return new AddressView(
-                patient.getPatientId(),
-                patient.getFirstName(),
-                patient.getLastName(),
-                patient.getEmail(),
-                patient.getContactPhone(),
-                patient.getMailingAddress(),
-                Address.extractCity(patient.getMailingAddress()),
                 patient.getDateOfBirth() == null ? null : patient.getDateOfBirth().toString()
         );
     }

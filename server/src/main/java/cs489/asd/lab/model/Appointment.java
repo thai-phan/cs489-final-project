@@ -23,18 +23,18 @@ public class Appointment {
     private LocalDateTime appointmentDateTime;
 
     @ManyToOne
-    @JoinColumn(name = "dentist_id")
+    @JoinColumn(name = "dentist_user_id")
     private Dentist dentist;
 
     @ManyToOne
-    @JoinColumn(name = "patient_id")
+    @JoinColumn(name = "patient_user_id")
     private Patient patient;
 
     @ManyToOne
     @JoinColumn(name = "surgery_id")
     private Surgery surgery;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private AppointmentStatus status; // e.g., BOOKED, CANCELLED, COMPLETED
+    @ManyToOne
+    @JoinColumn(name = "status_id")
+    private AppointmentStatus status;
 }

@@ -1,6 +1,6 @@
 package cs489.asd.lab.repository;
 
-import cs489.asd.lab.model.Dentist;
+import cs489.asd.lab.model.Manager;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
@@ -11,19 +11,19 @@ import java.util.Optional;
 
 @Repository
 @Transactional(readOnly = true)
-public class DentistRepository {
+public class ManagerRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public Optional<Dentist> findById(long dentistId) {
-        return Optional.ofNullable(entityManager.find(Dentist.class, dentistId));
+    public Optional<Manager> findById(long managerId) {
+        return Optional.ofNullable(entityManager.find(Manager.class, managerId));
     }
 
-    public List<Dentist> findAllByOrderByLastNameAscFirstNameAscDentistIdAsc() {
+    public List<Manager> findAllByOrderByLastNameAscFirstNameAscManagerIdAsc() {
         return entityManager.createQuery(
-                        "select d from Dentist d join fetch d.user u order by u.lastName asc, u.firstName asc, d.userId asc",
-                        Dentist.class)
+                        "select m from Manager m join fetch m.user u order by u.lastName asc, u.firstName asc, m.userId asc",
+                        Manager.class)
                 .getResultList();
     }
 }

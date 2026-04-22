@@ -22,10 +22,9 @@ public class AppointmentController {
     }
 
     @PostMapping("/appointments/request")
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF','PATIENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','PATIENT')")
     @ResponseStatus(HttpStatus.CREATED)
     public AppointmentResponse requestAppointment(@RequestBody AppointmentRequest request) {
         return appointmentService.requestAppointment(request);
     }
 }
-

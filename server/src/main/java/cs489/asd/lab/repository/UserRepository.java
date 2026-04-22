@@ -16,18 +16,20 @@ public class UserRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public Optional<User> findByUsername(String username) {
+    public Optional<User> findByEmail(String email) {
         return entityManager.createQuery(
-                        "select u from User u left join fetch u.roles where lower(u.username) = lower(:username)",
+                        "select u from User u " +
+                                "left join fetch u.role " +
+                                "where lower(u.email) = lower(:email)",
                         User.class)
-                .setParameter("username", username)
+                .setParameter("email", email)
                 .getResultStream()
                 .findFirst();
     }
 
     public Optional<Role> findRoleByName(String roleName) {
         return entityManager.createQuery(
-                        "select r from Role r where upper(r.name) = upper(:roleName)",
+                        "select r from Role r where upper(r.roleName) = upper(:roleName)",
                         Role.class)
                 .setParameter("roleName", roleName)
                 .getResultStream()
@@ -40,4 +42,3 @@ public class UserRepository {
         return user;
     }
 }
-

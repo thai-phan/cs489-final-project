@@ -6,8 +6,7 @@ public record LoginResponse(
         String accessToken,
         String tokenType,
         long expiresInSeconds,
-        String username,
+        String email,
         List<String> roles
 ) {
 }
-

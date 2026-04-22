@@ -19,7 +19,7 @@ public class DentistQL {
     }
 
     @QueryMapping
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF','DENTIST','HYGIENIST','PATIENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','DENTIST','PATIENT')")
     public List<DentistView> dentists() {
         return dentistRepository.findAllByOrderByLastNameAscFirstNameAscDentistIdAsc()
                 .stream()
@@ -29,13 +29,12 @@ public class DentistQL {
 
     private DentistView toDentistView(Dentist dentist) {
         return new DentistView(
-                dentist.getDentistId(),
-                dentist.getFirstName(),
-                dentist.getLastName(),
-                dentist.getPhone(),
-                dentist.getEmail(),
+                dentist.getDentistIdNumber(),
+                dentist.getUser().getFirstName(),
+                dentist.getUser().getLastName(),
+                dentist.getUser().getPhoneNumber(),
+                dentist.getUser().getEmail(),
                 dentist.getSpecialization()
         );
     }
 }
-

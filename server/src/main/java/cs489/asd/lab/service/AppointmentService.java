@@ -4,17 +4,15 @@ import cs489.asd.lab.controller.common.BusinessRuleViolationException;
 import cs489.asd.lab.dto.AppointmentDetailsView;
 import cs489.asd.lab.dto.AppointmentRequest;
 import cs489.asd.lab.dto.AppointmentResponse;
+import cs489.asd.lab.dto.DentistView;
 import cs489.asd.lab.dto.PatientView;
 import cs489.asd.lab.model.Appointment;
 import cs489.asd.lab.model.AppointmentStatus;
 import cs489.asd.lab.model.Dentist;
 import cs489.asd.lab.model.Patient;
 import cs489.asd.lab.model.Surgery;
-import cs489.asd.lab.repository.AppointmentRepository;
-import cs489.asd.lab.repository.BillRepository;
-import cs489.asd.lab.repository.DentistRepository;
-import cs489.asd.lab.repository.PatientRepository;
-import cs489.asd.lab.repository.SurgeryRepository;
+import cs489.asd.lab.model.User;
+import cs489.asd.lab.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,19 +33,25 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
     private final DentistRepository dentistRepository;
     private final SurgeryRepository surgeryRepository;
+    private final UserRepository userRepository;
+    private final AppointmentStatusRepository appointmentStatusRepository;
 
     public AppointmentService(
             AppointmentRepository appointmentRepository,
             BillRepository billRepository,
             PatientRepository patientRepository,
             DentistRepository dentistRepository,
-            SurgeryRepository surgeryRepository
+            SurgeryRepository surgeryRepository,
+            UserRepository userRepository,
+            AppointmentStatusRepository appointmentStatusRepository
     ) {
         this.appointmentRepository = appointmentRepository;
         this.billRepository = billRepository;
         this.patientRepository = patientRepository;
         this.dentistRepository = dentistRepository;
         this.surgeryRepository = surgeryRepository;
+        this.userRepository = userRepository;
+        this.appointmentStatusRepository = appointmentStatusRepository;
     }
 
     @Transactional
@@ -64,18 +68,12 @@ public class AppointmentService {
         Surgery surgery = surgeryRepository.findById(request.surgeryId())
                 .orElseThrow(() -> new IllegalArgumentException("Surgery not found: " + request.surgeryId()));
 
-        if (billRepository.existsUnpaidByPatientId(patient.getPatientId())) {
-            throw new BusinessRuleViolationException(
-                    "Patient has an outstanding unpaid bill and cannot request a new appointment"
-            );
-        }
-
         LocalDate weekDate = appointmentDateTime.toLocalDate();
         LocalDateTime weekStart = weekDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
         LocalDateTime weekEnd = weekStart.plusWeeks(1);
 
         long dentistAppointments = appointmentRepository.countDentistAppointmentsBetween(
-                dentist.getDentistId(),
+                dentist.getUserId(),
                 weekStart,
                 weekEnd
         );
@@ -91,7 +89,9 @@ public class AppointmentService {
         appointment.setPatient(patient);
         appointment.setDentist(dentist);
         appointment.setSurgery(surgery);
-        appointment.setStatus(AppointmentStatus.SCHEDULED);
+        AppointmentStatus scheduled = appointmentStatusRepository.findByName("SCHEDULED")
+                .orElseThrow(() -> new IllegalStateException("Required status SCHEDULED not found"));
+        appointment.setStatus(scheduled);
 
         Appointment saved = appointmentRepository.save(appointment);
         return toResponse(saved);
@@ -120,6 +120,21 @@ public class AppointmentService {
         requirePositive(patientId, "patientId");
         LocalDate date = parseDate(appointmentDate);
         return appointmentRepository.findByPatientIdAndDateOrderByDateTimeAsc(patientId, date)
+                .stream()
+                .map(this::toDetailsView)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AppointmentDetailsView> getAppointmentsForCurrentPatient(String email) {
+        String normalizedEmail = requireText(email, "email");
+        User user = userRepository.findByEmail(normalizedEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + normalizedEmail));
+
+        Patient patient = patientRepository.findById(user.getUserId())
+                .orElseThrow(() -> new BusinessRuleViolationException("The signed-in account is not linked to a patient profile"));
+
+        return appointmentRepository.findByPatientIdOrderByDateTimeAsc(patient.getUserId())
                 .stream()
                 .map(this::toDetailsView)
                 .toList();
@@ -171,35 +186,45 @@ public class AppointmentService {
         return new AppointmentResponse(
                 appointment.getAppointmentId(),
                 appointment.getAppointmentDateTime() == null ? null : appointment.getAppointmentDateTime().toString(),
-                appointment.getDentist().getDentistId(),
-                appointment.getPatient().getPatientId(),
+                appointment.getDentist().getUserId(),
+                appointment.getPatient().getUserId(),
                 appointment.getSurgery().getSurgeryId(),
-                appointment.getStatus().name()
+                appointment.getStatus().getStatusName()
         );
     }
 
     private AppointmentDetailsView toDetailsView(Appointment appointment) {
         Patient patient = appointment.getPatient();
+        Dentist dentist = appointment.getDentist();
 
         PatientView patientView = new PatientView(
-                patient.getPatientId(),
-                patient.getFirstName(),
-                patient.getLastName(),
-                patient.getContactPhone(),
-                patient.getEmail(),
+                patient.getUserId(),
+                patient.getUser().getFirstName(),
+                patient.getUser().getLastName(),
+                patient.getUser().getPhoneNumber(),
+                patient.getUser().getEmail(),
                 patient.getMailingAddress(),
                 patient.getDateOfBirth() == null ? null : patient.getDateOfBirth().toString()
+        );
+
+        DentistView dentistView = new DentistView(
+                dentist.getDentistIdNumber(),
+                dentist.getUser().getFirstName(),
+                dentist.getUser().getLastName(),
+                dentist.getUser().getPhoneNumber(),
+                dentist.getUser().getEmail(),
+                dentist.getSpecialization()
         );
 
         return new AppointmentDetailsView(
                 appointment.getAppointmentId(),
                 appointment.getAppointmentDateTime() == null ? null : appointment.getAppointmentDateTime().toString(),
-                appointment.getDentist().getDentistId(),
+                dentist.getDentistIdNumber(),
                 appointment.getSurgery().getSurgeryId(),
-                appointment.getStatus().name(),
+                appointment.getStatus().getStatusName(),
                 appointment.getSurgery().getLocationAddress(),
+                dentistView,
                 patientView
         );
     }
 }
-

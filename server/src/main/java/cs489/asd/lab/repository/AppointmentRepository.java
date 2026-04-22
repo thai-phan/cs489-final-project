@@ -21,15 +21,15 @@ public class AppointmentRepository {
     public long countDentistAppointmentsBetween(long dentistId, LocalDateTime fromInclusive, LocalDateTime toExclusive) {
         return entityManager.createQuery(
                         "select count(a) from Appointment a " +
-                                "where a.dentist.dentistId = :dentistId " +
+                                "where a.dentist.id = :dentistId " +
                                 "and a.appointmentDateTime >= :fromInclusive " +
                                 "and a.appointmentDateTime < :toExclusive " +
-                                "and a.status <> :cancelled",
+                                "and a.status.statusName <> :cancelled",
                         Long.class)
                 .setParameter("dentistId", dentistId)
                 .setParameter("fromInclusive", fromInclusive)
                 .setParameter("toExclusive", toExclusive)
-                .setParameter("cancelled", AppointmentStatus.CANCELLED)
+                .setParameter("cancelled", "CANCELLED")
                 .getSingleResult();
     }
 
@@ -38,7 +38,7 @@ public class AppointmentRepository {
                         "select a from Appointment a " +
                                 "join fetch a.patient p " +
                                 "join fetch a.surgery s " +
-                                "where a.dentist.dentistId = :dentistId " +
+                                "where a.dentist.id = :dentistId " +
                                 "order by a.appointmentDateTime asc, a.appointmentId asc",
                         Appointment.class)
                 .setParameter("dentistId", dentistId)
@@ -60,9 +60,10 @@ public class AppointmentRepository {
     public List<Appointment> findByPatientIdAndDateOrderByDateTimeAsc(long patientId, LocalDate appointmentDate) {
         return entityManager.createQuery(
                         "select a from Appointment a " +
+                                "join fetch a.dentist d " +
                                 "join fetch a.patient p " +
                                 "join fetch a.surgery s " +
-                                "where a.patient.patientId = :patientId " +
+                                "where a.patient.id = :patientId " +
                                 "and a.appointmentDateTime >= :fromInclusive " +
                                 "and a.appointmentDateTime < :toExclusive " +
                                 "order by a.appointmentDateTime asc, a.appointmentId asc",
@@ -70,6 +71,19 @@ public class AppointmentRepository {
                 .setParameter("patientId", patientId)
                 .setParameter("fromInclusive", appointmentDate.atStartOfDay())
                 .setParameter("toExclusive", appointmentDate.plusDays(1).atStartOfDay())
+                .getResultList();
+    }
+
+    public List<Appointment> findByPatientIdOrderByDateTimeAsc(long patientId) {
+        return entityManager.createQuery(
+                        "select a from Appointment a " +
+                                "join fetch a.dentist d " +
+                                "join fetch a.patient p " +
+                                "join fetch a.surgery s " +
+                                "where a.patient.id = :patientId " +
+                                "order by a.appointmentDateTime asc, a.appointmentId asc",
+                        Appointment.class)
+                .setParameter("patientId", patientId)
                 .getResultList();
     }
 
@@ -84,4 +98,3 @@ public class AppointmentRepository {
         return entityManager.merge(appointment);
     }
 }
-

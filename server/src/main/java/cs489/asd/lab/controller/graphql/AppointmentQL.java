@@ -8,6 +8,8 @@ import cs489.asd.lab.service.AppointmentService;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
@@ -23,7 +25,7 @@ public class AppointmentQL {
     }
 
     @MutationMapping
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF','PATIENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','PATIENT')")
     public AppointmentResponse requestAppointment(@Argument AppointmentRequestInput input) {
         AppointmentRequest request = new AppointmentRequest(
                 input.patientId(),
@@ -35,21 +37,26 @@ public class AppointmentQL {
     }
 
     @QueryMapping
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF','DENTIST','HYGIENIST','PATIENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','DENTIST','PATIENT')")
     public List<AppointmentDetailsView> appointmentsByDentist(@Argument long dentistId) {
         return appointmentService.getAppointmentsByDentist(dentistId);
     }
 
     @QueryMapping
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF','DENTIST','HYGIENIST','PATIENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','DENTIST','PATIENT')")
     public List<AppointmentDetailsView> appointmentsBySurgeryLocation(@Argument String locationAddress) {
         return appointmentService.getAppointmentsBySurgeryLocation(locationAddress);
     }
 
     @QueryMapping
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF','DENTIST','HYGIENIST','PATIENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','DENTIST','PATIENT')")
     public List<AppointmentDetailsView> appointmentsByPatientAndDate(@Argument long patientId, @Argument String appointmentDate) {
         return appointmentService.getAppointmentsByPatientAndDate(patientId, appointmentDate);
     }
-}
 
+    @QueryMapping
+    @PreAuthorize("hasRole('PATIENT')")
+    public List<AppointmentDetailsView> myAppointments(@AuthenticationPrincipal UserDetails userDetails) {
+        return appointmentService.getAppointmentsForCurrentPatient(userDetails.getUsername());
+    }
+}

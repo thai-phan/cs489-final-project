@@ -59,7 +59,7 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {
-        return username -> userRepository.findByUsername(username)
+        return username -> userRepository.findByEmail(username)
                 .filter(User::isEnabled)
                 .map(this::toUserDetails)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found or disabled: " + username));
@@ -85,13 +85,9 @@ public class SecurityConfig {
     }
 
     private UserDetails toUserDetails(User user) {
-        List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> role.getName().startsWith("ROLE_") ? role.getName() : "ROLE_" + role.getName())
-                .map(SimpleGrantedAuthority::new)
-                .map(GrantedAuthority.class::cast)
-                .toList();
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName()));
 
-        return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
+        return org.springframework.security.core.userdetails.User.withUsername(user.getEmail())
                 .password(user.getPassword())
                 .authorities(authorities)
                 .disabled(!user.isEnabled())

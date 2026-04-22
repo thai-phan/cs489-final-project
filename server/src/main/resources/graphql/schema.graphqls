@@ -14,21 +14,21 @@ type Mutation {
 }
 
 type Patient {
-  patientId: ID!
+  userId: ID!
   firstName: String!
   lastName: String!
-  contactPhone: String!
   email: String!
-  mailingAddress: String
+  phoneNumber: String
+  mailingAddress: String!
   dateOfBirth: String!
 }
 
 type Address {
-  patientId: ID!
+  userId: ID!
   firstName: String!
   lastName: String!
   email: String!
-  contactPhone: String!
+  phoneNumber: String
   mailingAddress: String!
   city: String!
   dateOfBirth: String!
@@ -47,7 +47,7 @@ type Dentist {
   dentistId: ID!
   firstName: String!
   lastName: String!
-  phone: String
+  phoneNumber: String
   email: String!
   specialization: String
 }
@@ -59,6 +59,7 @@ type AppointmentDetails {
   surgeryId: ID!
   status: String!
   surgeryLocation: String!
+  dentist: Dentist!
   patient: Patient!
 }
 
@@ -68,4 +69,3 @@ input AppointmentRequestInput {
   surgeryId: ID!
   appointmentDateTime: String!
 }
-

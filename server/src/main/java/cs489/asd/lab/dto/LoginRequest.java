@@ -1,8 +1,7 @@
 package cs489.asd.lab.dto;
 
 public record LoginRequest(
-        String username,
+        String email,
         String password
 ) {
 }
-
