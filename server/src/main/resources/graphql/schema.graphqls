@@ -1,0 +1,71 @@
+type Query {
+  patients: [Patient!]!
+  patient(patientId: ID!): Patient
+  searchPatients(searchString: String): [Patient!]!
+  addresses: [Address!]!
+  dentists: [Dentist!]!
+  appointmentsByDentist(dentistId: ID!): [AppointmentDetails!]!
+  appointmentsBySurgeryLocation(locationAddress: String!): [AppointmentDetails!]!
+  appointmentsByPatientAndDate(patientId: ID!, appointmentDate: String!): [AppointmentDetails!]!
+}
+
+type Mutation {
+  requestAppointment(input: AppointmentRequestInput!): Appointment!
+}
+
+type Patient {
+  patientId: ID!
+  firstName: String!
+  lastName: String!
+  contactPhone: String!
+  email: String!
+  mailingAddress: String
+  dateOfBirth: String!
+}
+
+type Address {
+  patientId: ID!
+  firstName: String!
+  lastName: String!
+  email: String!
+  contactPhone: String!
+  mailingAddress: String!
+  city: String!
+  dateOfBirth: String!
+}
+
+type Appointment {
+  appointmentId: ID!
+  appointmentDateTime: String!
+  dentistId: ID!
+  patientId: ID!
+  surgeryId: ID!
+  status: String!
+}
+
+type Dentist {
+  dentistId: ID!
+  firstName: String!
+  lastName: String!
+  phone: String
+  email: String!
+  specialization: String
+}
+
+type AppointmentDetails {
+  appointmentId: ID!
+  appointmentDateTime: String!
+  dentistId: ID!
+  surgeryId: ID!
+  status: String!
+  surgeryLocation: String!
+  patient: Patient!
+}
+
+input AppointmentRequestInput {
+  patientId: ID!
+  dentistId: ID!
+  surgeryId: ID!
+  appointmentDateTime: String!
+}
+

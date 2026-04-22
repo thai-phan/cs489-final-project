@@ -1,0 +1,55 @@
+package cs489.asd.lab.controller.graphql;
+
+import cs489.asd.lab.dto.AppointmentDetailsView;
+import cs489.asd.lab.dto.AppointmentRequest;
+import cs489.asd.lab.dto.AppointmentRequestInput;
+import cs489.asd.lab.dto.AppointmentResponse;
+import cs489.asd.lab.service.AppointmentService;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+
+import java.util.List;
+
+@Controller
+public class AppointmentQL {
+
+    private final AppointmentService appointmentService;
+
+    public AppointmentQL(AppointmentService appointmentService) {
+        this.appointmentService = appointmentService;
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF','PATIENT')")
+    public AppointmentResponse requestAppointment(@Argument AppointmentRequestInput input) {
+        AppointmentRequest request = new AppointmentRequest(
+                input.patientId(),
+                input.dentistId(),
+                input.surgeryId(),
+                input.appointmentDateTime()
+        );
+        return appointmentService.requestAppointment(request);
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF','DENTIST','HYGIENIST','PATIENT')")
+    public List<AppointmentDetailsView> appointmentsByDentist(@Argument long dentistId) {
+        return appointmentService.getAppointmentsByDentist(dentistId);
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF','DENTIST','HYGIENIST','PATIENT')")
+    public List<AppointmentDetailsView> appointmentsBySurgeryLocation(@Argument String locationAddress) {
+        return appointmentService.getAppointmentsBySurgeryLocation(locationAddress);
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF','DENTIST','HYGIENIST','PATIENT')")
+    public List<AppointmentDetailsView> appointmentsByPatientAndDate(@Argument long patientId, @Argument String appointmentDate) {
+        return appointmentService.getAppointmentsByPatientAndDate(patientId, appointmentDate);
+    }
+}
+

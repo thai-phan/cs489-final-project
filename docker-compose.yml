@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ads-db
+    environment:
+      POSTGRES_DB: cs489-project
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cs489-project"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: server
+      dockerfile: server/Dockerfile
+    container_name: ads-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cs489-project
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      APP_JWT_SECRET: change-me-to-a-very-long-secret-key-32-plus-bytes
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  client:
+    build:
+      context: ./client
+      dockerfile: server/Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:8080
+        VITE_AUTH_LOGIN_PATH: /adsweb/api/v1/auth/login
+        VITE_AUTH_REGISTER_PATH: /adsweb/api/v1/auth/register
+        VITE_GRAPHQL_PATH: /graphql
+    container_name: ads-client
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres_data:
+

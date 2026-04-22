@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cs489.asd.lab.config.DatabaseConfigTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-04-22T01:52:53.145Z" hostname="tpmac.local" time="0.011">
+  <properties/>
+  <testcase name="placeholder()" classname="cs489.asd.lab.config.DatabaseConfigTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

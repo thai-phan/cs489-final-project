@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cs489.asd.lab.config.JwtTokenServiceTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-04-22T01:52:53.157Z" hostname="tpmac.local" time="0.131">
+  <properties/>
+  <testcase name="generateToken_extractUsername_andValidate()" classname="cs489.asd.lab.config.JwtTokenServiceTest" time="0.128"/>
+  <testcase name="invalidWhenSignedWithDifferentSecret()" classname="cs489.asd.lab.config.JwtTokenServiceTest" time="0.001"/>
+  <testcase name="expiredTokenIsInvalid()" classname="cs489.asd.lab.config.JwtTokenServiceTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
