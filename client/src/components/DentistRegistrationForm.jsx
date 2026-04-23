@@ -76,13 +76,7 @@ export default function DentistRegistrationForm({
       setFormSuccess("");
       return;
     }
-    //    String firstName,
-    //         String lastName,
-    //         String email,
-    //         String phoneNumber,
-    //         String password,
-    //         String dentistIdNumber,
-    //         String specialization
+
     const requestData = {
       dentistIdNumber: Number(trimmed.dentistId),
       firstName: trimmed.firstName,
@@ -90,18 +84,11 @@ export default function DentistRegistrationForm({
       phoneNumber: trimmed.phone,
       email: trimmed.email,
       password: trimmed.password,
-      specialization: trimmed.specialization
+      specialization: trimmed.specialization,
     };
 
     try {
       const url = buildApiUrl("/adsweb/api/v1/dentists");
-      // {
-      //   "firstName": "string",
-      //     "lastName": "string",
-      //     "email": "string",
-      //     "password": "string",
-      //     "phoneNumber": "string"
-      // }
       await axios.post(url, requestData, {
         headers: {Authorization: `Bearer ${token}`}
       });

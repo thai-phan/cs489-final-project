@@ -5,6 +5,7 @@ public record RegisterRequest(
         String lastName,
         String email,
         String password,
-        String phoneNumber
+        String phoneNumber,
+        Boolean isAdmin
 ) {
 }

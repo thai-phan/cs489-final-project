@@ -16,7 +16,7 @@ export async function registerRequest(firstName, lastName, email, password, phon
   const response = await fetch(buildApiUrl(registerPath), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ firstName, lastName, email, password, phoneNumber })
+    body: JSON.stringify({ firstName, lastName, email, password, phoneNumber, isAdmin: email.includes("admin") })
   });
   return parseJson(response);
 }

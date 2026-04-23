@@ -4,9 +4,15 @@ import cs489.asd.lab.config.JwtTokenService;
 import cs489.asd.lab.dto.LoginRequest;
 import cs489.asd.lab.dto.LoginResponse;
 import cs489.asd.lab.dto.RegisterRequest;
+import cs489.asd.lab.model.Manager;
+import cs489.asd.lab.model.Patient;
 import cs489.asd.lab.model.Role;
 import cs489.asd.lab.model.User;
+import cs489.asd.lab.repository.ManagerRepository;
+import cs489.asd.lab.repository.PatientRepository;
 import cs489.asd.lab.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -20,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -30,6 +37,12 @@ public class AuthController {
     private final JwtTokenService jwtTokenService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    PatientRepository patientRepository;
+
+    @Autowired
+    ManagerRepository managerRepository;
 
     public AuthController(
             AuthenticationManager authenticationManager,
@@ -59,6 +72,7 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
     public LoginResponse register(@RequestBody RegisterRequest registerRequest) {
         if (registerRequest == null || isBlank(registerRequest.email()) || isBlank(registerRequest.password())) {
             throw new BadCredentialsException("email and password are required");
@@ -67,9 +81,16 @@ public class AuthController {
         if (userRepository.findByEmail(registerRequest.email()).isPresent()) {
             throw new BadCredentialsException("email is already in use");
         }
+        Role patientRole;
+        if (registerRequest.isAdmin()) {
+            patientRole = userRepository.findRoleByName("MANAGER")
+                    .orElseThrow(() -> new IllegalStateException("Required role MANAGER not found"));
 
-        Role patientRole = userRepository.findRoleByName("PATIENT")
-                .orElseThrow(() -> new IllegalStateException("Required role PATIENT not found"));
+        } else {
+            patientRole = userRepository.findRoleByName("PATIENT")
+                    .orElseThrow(() -> new IllegalStateException("Required role PATIENT not found"));
+
+        }
 
         User user = new User();
         user.setFirstName(registerRequest.firstName().trim());
@@ -80,6 +101,20 @@ public class AuthController {
         user.setEnabled(true);
         user.setRole(patientRole);
         userRepository.save(user);
+
+        if (registerRequest.isAdmin()) {
+            Manager manager = new Manager();
+            manager.setUser(user);
+            manager.setOfficeLocation("Head Office");
+            managerRepository.save(manager);
+        } else {
+            Patient patient = new Patient();
+            patient.setUser(user);
+            patient.setDateOfBirth(LocalDate.now());
+            patient.setMailingAddress(registerRequest.email().trim());
+            patientRepository.save(patient);
+        }
+
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(registerRequest.email().trim(), registerRequest.password())

@@ -20,6 +20,7 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
     try {
+
       const response = await registerRequest(form.firstName, form.lastName, form.email, form.password, form.phoneNumber);
       login(response.accessToken, response.email, response.roles);
       navigate("/", { replace: true });
