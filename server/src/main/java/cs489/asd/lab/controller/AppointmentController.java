@@ -3,6 +3,7 @@ package cs489.asd.lab.controller;
 import cs489.asd.lab.dto.AppointmentRequest;
 import cs489.asd.lab.dto.AppointmentResponse;
 import cs489.asd.lab.dto.AppointmentDetailsView;
+import cs489.asd.lab.dto.AppointmentStatusUpdateRequest;
 import cs489.asd.lab.service.AppointmentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,5 +40,20 @@ public class AppointmentController {
     @PreAuthorize("hasAnyRole('MANAGER','DENTIST')")
     public List<AppointmentDetailsView> getPendingAppointments() {
         return appointmentService.getPendingAppointments();
+    }
+
+    @GetMapping("/appointments/my/scheduled")
+    @PreAuthorize("hasRole('DENTIST')")
+    public List<AppointmentDetailsView> getCurrentDentistScheduledAppointments(@AuthenticationPrincipal UserDetails userDetails) {
+        return appointmentService.getScheduledAppointmentsForCurrentDentist(userDetails.getUsername());
+    }
+
+    @PutMapping("/appointments/{appointmentId}/status")
+    @PreAuthorize("hasAnyRole('MANAGER','DENTIST')")
+    public AppointmentDetailsView updateAppointmentStatus(
+            @PathVariable long appointmentId,
+            @RequestBody AppointmentStatusUpdateRequest request
+    ) {
+        return appointmentService.updateAppointmentStatus(appointmentId, request);
     }
 }

@@ -1,7 +1,6 @@
 package cs489.asd.lab.repository;
 
 import cs489.asd.lab.model.Appointment;
-import cs489.asd.lab.model.AppointmentStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
@@ -93,6 +92,7 @@ public class AppointmentRepository {
                                 "join fetch a.dentist d " +
                                 "join fetch a.patient p " +
                                 "join fetch a.surgery s " +
+                                "join fetch a.status st " +
                                 "where a.status.statusName <> :completed " +
                                 "and a.status.statusName <> :cancelled " +
                                 "order by a.appointmentDateTime asc, a.appointmentId asc",
@@ -100,6 +100,35 @@ public class AppointmentRepository {
                 .setParameter("completed", "COMPLETED")
                 .setParameter("cancelled", "CANCELLED")
                 .getResultList();
+    }
+
+    public List<Appointment> findScheduledAppointmentsByDentistIdOrderByDateTimeAsc(long dentistId) {
+        return entityManager.createQuery(
+                        "select a from Appointment a " +
+                                "join fetch a.dentist d " +
+                                "join fetch a.patient p " +
+                                "join fetch a.surgery s " +
+                                "join fetch a.status st " +
+                                "where a.dentist.id = :dentistId " +
+                                "and upper(a.status.statusName) = 'SCHEDULED' " +
+                                "order by a.appointmentDateTime asc, a.appointmentId asc",
+                        Appointment.class)
+                .setParameter("dentistId", dentistId)
+                .getResultList();
+    }
+
+    public java.util.Optional<Appointment> findByAppointmentId(long appointmentId) {
+        return entityManager.createQuery(
+                        "select a from Appointment a " +
+                                "join fetch a.dentist d " +
+                                "join fetch a.patient p " +
+                                "join fetch a.surgery s " +
+                                "join fetch a.status st " +
+                                "where a.appointmentId = :appointmentId",
+                        Appointment.class)
+                .setParameter("appointmentId", appointmentId)
+                .getResultStream()
+                .findFirst();
     }
 
     @Transactional

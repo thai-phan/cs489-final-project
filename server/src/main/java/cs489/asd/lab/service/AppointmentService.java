@@ -4,6 +4,7 @@ import cs489.asd.lab.controller.common.BusinessRuleViolationException;
 import cs489.asd.lab.dto.AppointmentDetailsView;
 import cs489.asd.lab.dto.AppointmentRequest;
 import cs489.asd.lab.dto.AppointmentResponse;
+import cs489.asd.lab.dto.AppointmentStatusUpdateRequest;
 import cs489.asd.lab.dto.DentistView;
 import cs489.asd.lab.dto.PatientView;
 import cs489.asd.lab.dto.PublicAppointmentRequest;
@@ -17,6 +18,10 @@ import cs489.asd.lab.model.User;
 import cs489.asd.lab.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -24,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class AppointmentService {
@@ -214,6 +220,46 @@ public class AppointmentService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<AppointmentDetailsView> getScheduledAppointmentsForCurrentDentist(String email) {
+        String normalizedEmail = requireText(email, "email");
+        User user = userRepository.findByEmail(normalizedEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + normalizedEmail));
+
+        Dentist dentist = dentistRepository.findById(user.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "The signed-in account is not linked to a dentist profile"));
+
+        return appointmentRepository.findScheduledAppointmentsByDentistIdOrderByDateTimeAsc(dentist.getUserId())
+                .stream()
+                .map(this::toDetailsView)
+                .toList();
+    }
+
+    @Transactional
+    public AppointmentDetailsView updateAppointmentStatus(long appointmentId, AppointmentStatusUpdateRequest request) {
+        requirePositive(appointmentId, "appointmentId");
+
+        if (request == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Appointment status payload is required");
+        }
+
+        String normalizedStatus = normalizeStatus(request.status());
+        Set<String> allowedStatuses = Set.of("PENDING", "SCHEDULED", "COMPLETED", "CANCELLED");
+        if (!allowedStatuses.contains(normalizedStatus)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported appointment status: " + request.status());
+        }
+
+        Appointment appointment = appointmentRepository.findByAppointmentId(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found: " + appointmentId));
+
+        AppointmentStatus status = appointmentStatusRepository.findByName(normalizedStatus)
+                .orElseThrow(() -> new IllegalStateException("Required status " + normalizedStatus + " not found"));
+
+        appointment.setStatus(status);
+        Appointment saved = appointmentRepository.save(appointment);
+        return toDetailsView(saved);
+    }
+
     private void validateAppointmentRequest(AppointmentRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("Appointment payload is required");
@@ -251,6 +297,10 @@ public class AppointmentService {
             throw new IllegalArgumentException(field + " is required");
         }
         return value.trim();
+    }
+
+    private String normalizeStatus(String value) {
+        return requireText(value, "status").toUpperCase();
     }
 
     private LocalDateTime parseDateTime(String value) {

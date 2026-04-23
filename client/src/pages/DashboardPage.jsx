@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { restRequest } from "../api/restApi";
 import { useAuth } from "../auth/AuthContext";
 import DentistDirectory from "../components/DentistDirectory";
@@ -12,6 +12,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
 
   const dentists = [...registrations, ...(result ?? [])];
+
+  useEffect(() => {
+    loadDentists();
+  }, []);
 
   async function loadDentists() {
     setLoading(true);

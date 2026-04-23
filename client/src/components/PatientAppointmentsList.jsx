@@ -1,3 +1,16 @@
+import {
+  Alert,
+  Box, Button,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography
+} from "@mui/material";
+
 function formatDateTime(value) {
   if (!value) {
     return "N/A";
@@ -12,43 +25,55 @@ function formatDateTime(value) {
 }
 
 export default function PatientAppointmentsList({ appointments, loading, error }) {
+
+
   return (
-    <>
-      {error && <p className="error">{error}</p>}
-      {!error && loading && <p className="muted">Loading appointment details...</p>}
+    <Box sx={{ width: "100%" }}>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {!error && loading && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Loading appointment details...
+        </Typography>
+      )}
 
       {!loading && !error && appointments.length > 0 ? (
-        <table className="dentists-table">
-          <thead>
-            <tr>
-              <th>Appointment ID</th>
-              <th>Date & Time</th>
-              <th>Status</th>
-              <th>Dentist</th>
-              <th>Specialization</th>
-              <th>Email</th>
-              <th>Surgery</th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.map((appointment) => (
-              <tr key={appointment.appointmentId}>
-                <td>{appointment.appointmentId}</td>
-                <td>{formatDateTime(appointment.appointmentDateTime)}</td>
-                <td>{appointment.status}</td>
-                <td>{appointment.dentistName}</td>
-                <td>{appointment.dentistSpecialization}</td>
-                <td>{appointment.dentistEmail}</td>
-                <td>{appointment.surgeryLocation}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <TableContainer component={Paper} variant="outlined">
+          <Table size="small" aria-label="appointments table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Appointment ID</TableCell>
+                <TableCell>Patient Name</TableCell>
+                <TableCell>Date &amp; Time</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Dentist</TableCell>
+                <TableCell>Specialization</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Surgery</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {appointments.map((appointment) => (
+                <TableRow key={appointment.appointmentId} hover>
+                  <TableCell>{appointment.appointmentId}</TableCell>
+                  <TableCell>{appointment.patient.firstName + " " + appointment.patient.lastName}</TableCell>
+                  <TableCell>{formatDateTime(appointment.appointmentDateTime)}</TableCell>
+                  <TableCell>{appointment.status}</TableCell>
+                  <TableCell>{appointment.dentistName}</TableCell>
+                  <TableCell>{appointment.dentistSpecialization}</TableCell>
+                  <TableCell>{appointment.dentistEmail}</TableCell>
+                  <TableCell>{appointment.surgeryLocation}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       ) : null}
 
       {!loading && !error && appointments.length === 0 ? (
-        <p className="muted">No appointments found.</p>
+        <Typography variant="body2" color="text.secondary">
+          No appointments found.
+        </Typography>
       ) : null}
-    </>
+    </Box>
   );
 }

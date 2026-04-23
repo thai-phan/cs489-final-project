@@ -8,7 +8,7 @@ export default function WelcomePage() {
             Your trusted partner for comprehensive dental care. We provide exceptional services with a focus on patient comfort and modern technology.
           </p>
           <div className="hero-buttons">
-            <a href="/appointments" className="btn btn-primary">Schedule Appointment</a>
+            <a href="/book-appointment" className="btn btn-primary">Schedule Appointment</a>
             <a href="/login" className="btn btn-secondary">Sign In</a>
           </div>
         </div>

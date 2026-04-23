@@ -22,8 +22,10 @@ export default function LoginPage() {
       login(response.accessToken, response.email, response.roles);
 
       // Redirect based on role
-      if (response.roles.includes("ROLE_PATIENT")) {
-        navigate("/appointments", { replace: true });
+      if (response.roles.includes("ROLE_MANAGER")) {
+        navigate("/dashboard", { replace: true });
+      } else if (response.roles.includes("ROLE_PATIENT")) {
+        navigate("/book-appointment", { replace: true });
       } else {
         navigate(from, { replace: true });
       }
