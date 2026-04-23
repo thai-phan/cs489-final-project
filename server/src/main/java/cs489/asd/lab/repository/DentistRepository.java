@@ -26,4 +26,28 @@ public class DentistRepository {
                         Dentist.class)
                 .getResultList();
     }
+
+    public Optional<Dentist> findByUser_FullName(String fullName) {
+        return entityManager.createQuery(
+                        "select d from Dentist d join d.user u where concat(u.firstName, ' ', u.lastName) = :fullName",
+                        Dentist.class)
+                .setParameter("fullName", fullName)
+                .getResultStream()
+                .findFirst();
+    }
+
+    public Optional<Dentist> findByDentistIdNumber(String dentistIdNumber) {
+        return entityManager.createQuery(
+                        "select d from Dentist d join fetch d.user where lower(d.dentistIdNumber) = lower(:dentistIdNumber)",
+                        Dentist.class)
+                .setParameter("dentistIdNumber", dentistIdNumber)
+                .getResultStream()
+                .findFirst();
+    }
+
+    @Transactional
+    public Dentist save(Dentist dentist) {
+        entityManager.persist(dentist);
+        return dentist;
+    }
 }

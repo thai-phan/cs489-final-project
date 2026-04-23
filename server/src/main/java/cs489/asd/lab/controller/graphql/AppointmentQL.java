@@ -28,10 +28,15 @@ public class AppointmentQL {
     @PreAuthorize("hasAnyRole('ADMIN','PATIENT')")
     public AppointmentResponse requestAppointment(@Argument AppointmentRequestInput input) {
         AppointmentRequest request = new AppointmentRequest(
-                input.patientId(),
-                input.dentistId(),
-                input.surgeryId(),
-                input.appointmentDateTime()
+                input.firstName(),
+                input.lastName(),
+                input.phone(),
+                input.email(),
+                input.dentist(),
+                input.contactMethod(),
+                input.appointmentDate(),
+                input.appointmentTime(),
+                input.reason()
         );
         return appointmentService.requestAppointment(request);
     }

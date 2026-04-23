@@ -1,3 +1,19 @@
+import {useState} from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography
+} from "@mui/material";
+import axios from "axios";
+import {buildApiUrl} from "../api/http.js";
+import {useAuth} from "../auth/AuthContext.jsx";
+
 const SPECIALIZATIONS = [
   "General Dentistry",
   "Orthodontics",
@@ -8,105 +24,215 @@ const SPECIALIZATIONS = [
   "Prosthodontics"
 ];
 
+const INITIAL_FORM = {
+  dentistId: "",
+  firstName: "",
+  lastName: "",
+  phone: "",
+  email: "",
+  specialization: "",
+  password: ""
+};
+
 export default function DentistRegistrationForm({
-  form,
-  onFieldChange,
-  onSubmit,
-  onClear,
-  formError,
-  formSuccess
-}) {
+                                                  dentists = [],
+                                                }) {
+  const {token} = useAuth();
+  const [formData, setFormData] = useState(INITIAL_FORM);
+  const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
+
+  const handleChange = (field) => (event) => {
+    setFormData((current) => ({...current, [field]: event.target.value}));
+  };
+
+  const handleClear = () => {
+    setFormData(INITIAL_FORM);
+    setFormError("");
+    setFormSuccess("");
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const trimmed = Object.fromEntries(
+        Object.entries(formData).map(([key, value]) => [key, value.trim()])
+    );
+
+    if (!/^\d+$/.test(trimmed.dentistId)) {
+      setFormError("Dentist ID must be a numeric value.");
+      setFormSuccess("");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed.email)) {
+      setFormError("Enter a valid email address.");
+      setFormSuccess("");
+      return;
+    }
+
+    if (dentists.some((dentist) => String(dentist.dentistId) === trimmed.dentistId)) {
+      setFormError("Dentist ID already exists in the current list.");
+      setFormSuccess("");
+      return;
+    }
+    //    String firstName,
+    //         String lastName,
+    //         String email,
+    //         String phoneNumber,
+    //         String password,
+    //         String dentistIdNumber,
+    //         String specialization
+    const requestData = {
+      dentistIdNumber: Number(trimmed.dentistId),
+      firstName: trimmed.firstName,
+      lastName: trimmed.lastName,
+      phoneNumber: trimmed.phone,
+      email: trimmed.email,
+      password: trimmed.password,
+      specialization: trimmed.specialization
+    };
+
+    try {
+      const url = buildApiUrl("/adsweb/api/v1/dentists");
+      // {
+      //   "firstName": "string",
+      //     "lastName": "string",
+      //     "email": "string",
+      //     "password": "string",
+      //     "phoneNumber": "string"
+      // }
+      await axios.post(url, requestData, {
+        headers: {Authorization: `Bearer ${token}`}
+      });
+
+      setFormData(INITIAL_FORM);
+      setFormError("");
+      setFormSuccess("Dentist registration has been captured in the UI.");
+    } catch (err) {
+      setFormSuccess("");
+      setFormError(err.message || "Unable to register dentist right now.");
+    }
+  };
+
   return (
-    <section className="card form-card">
-      <div className="section-heading">
-        <h2>Register Dentist</h2>
-        <p className="muted">
-          Office Managers can record each dentist&apos;s ID, contact details, and specialization.
-        </p>
-      </div>
+      <Card className="card form-card" variant="outlined">
+        <CardContent>
+          <Stack spacing={1} sx={{mb: 3}}>
+            <Typography variant="h5" component="h2">
+              Register Dentist
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Office Managers can record each dentist&apos;s ID, contact details, and specialization.
+            </Typography>
+          </Stack>
 
-      <form onSubmit={onSubmit}>
-        <div className="form-grid">
-          <div className="form-row">
-            <label htmlFor="dentist-id">Dentist ID</label>
-            <input
-              id="dentist-id"
-              value={form.dentistId}
-              onChange={(event) => onFieldChange("dentistId", event.target.value)}
-              placeholder="1006"
-              required
-            />
-          </div>
-          <div className="form-row">
-            <label htmlFor="specialization">Specialization</label>
-            <select
-              id="specialization"
-              value={form.specialization}
-              onChange={(event) => onFieldChange("specialization", event.target.value)}
-              required
+          <Box component="form" onSubmit={handleSubmit}>
+            <Box
+                sx={{
+                  display: "grid",
+                  gap: 2,
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, minmax(0, 1fr))"
+                  }
+                }}
             >
-              <option value="">Select specialization</option>
-              {SPECIALIZATIONS.map((specialization) => (
-                <option key={specialization} value={specialization}>
-                  {specialization}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-row">
-            <label htmlFor="first-name">First Name</label>
-            <input
-              id="first-name"
-              value={form.firstName}
-              onChange={(event) => onFieldChange("firstName", event.target.value)}
-              required
-            />
-          </div>
-          <div className="form-row">
-            <label htmlFor="last-name">Last Name</label>
-            <input
-              id="last-name"
-              value={form.lastName}
-              onChange={(event) => onFieldChange("lastName", event.target.value)}
-              required
-            />
-          </div>
-          <div className="form-row">
-            <label htmlFor="phone">Contact Phone Number</label>
-            <input
-              id="phone"
-              type="tel"
-              value={form.phone}
-              onChange={(event) => onFieldChange("phone", event.target.value)}
-              placeholder="(515) 555-0199"
-              required
-            />
-          </div>
-          <div className="form-row">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={form.email}
-              onChange={(event) => onFieldChange("email", event.target.value)}
-              placeholder="dentist@advantis.example"
-              required
-            />
-          </div>
-        </div>
+              <TextField
+                  id="dentist-id"
+                  label="Dentist ID"
+                  value={formData.dentistId}
+                  onChange={handleChange("dentistId")}
+                  placeholder="1006"
+                  required
+                  fullWidth
+              />
 
-        <div className="form-actions">
-          <button className="btn-primary" type="submit">
-            Register Dentist
-          </button>
-          <button className="btn-secondary" type="button" onClick={onClear}>
-            Clear Form
-          </button>
-        </div>
+              <TextField
+                  id="specialization"
+                  label="Specialization"
+                  select
+                  value={formData.specialization}
+                  onChange={handleChange("specialization")}
+                  required
+                  fullWidth
+              >
+                <MenuItem value="" disabled>
+                  Select specialization
+                </MenuItem>
+                {SPECIALIZATIONS.map((specialization) => (
+                    <MenuItem key={specialization} value={specialization}>
+                      {specialization}
+                    </MenuItem>
+                ))}
+              </TextField>
 
-        {formError && <p className="error">{formError}</p>}
-        {formSuccess && <p className="success">{formSuccess}</p>}
-      </form>
-    </section>
+              <TextField
+                  id="first-name"
+                  label="First Name"
+                  value={formData.firstName}
+                  onChange={handleChange("firstName")}
+                  required
+                  fullWidth
+              />
+
+              <TextField
+                  id="last-name"
+                  label="Last Name"
+                  value={formData.lastName}
+                  onChange={handleChange("lastName")}
+                  required
+                  fullWidth
+              />
+
+              <TextField
+                  id="phone"
+                  label="Contact Phone Number"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleChange("phone")}
+                  placeholder="(515) 555-0199"
+                  required
+                  fullWidth
+              />
+
+              <TextField
+                  id="email"
+                  label="Email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange("email")}
+                  placeholder="dentist@advantis.example"
+                  required
+                  fullWidth
+              />
+
+              <TextField
+                  id="password"
+                  label="Password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange("password")}
+                  required
+                  fullWidth
+              />
+            </Box>
+
+            <Stack direction="row" spacing={1.5} sx={{mt: 2.5, mb: 2}}>
+              <Button variant="contained" type="submit">
+                Register Dentist
+              </Button>
+              <Button variant="outlined" type="button" onClick={handleClear}>
+                Clear Form
+              </Button>
+            </Stack>
+
+            <Stack spacing={1}>
+              {formError && <Alert severity="error">{formError}</Alert>}
+              {formSuccess && <Alert severity="success">{formSuccess}</Alert>}
+            </Stack>
+          </Box>
+        </CardContent>
+      </Card>
   );
 }

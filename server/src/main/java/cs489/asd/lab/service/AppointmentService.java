@@ -6,10 +6,12 @@ import cs489.asd.lab.dto.AppointmentRequest;
 import cs489.asd.lab.dto.AppointmentResponse;
 import cs489.asd.lab.dto.DentistView;
 import cs489.asd.lab.dto.PatientView;
+import cs489.asd.lab.dto.PublicAppointmentRequest;
 import cs489.asd.lab.model.Appointment;
 import cs489.asd.lab.model.AppointmentStatus;
 import cs489.asd.lab.model.Dentist;
 import cs489.asd.lab.model.Patient;
+import cs489.asd.lab.model.Role;
 import cs489.asd.lab.model.Surgery;
 import cs489.asd.lab.model.User;
 import cs489.asd.lab.repository.*;
@@ -54,20 +56,84 @@ public class AppointmentService {
         this.appointmentStatusRepository = appointmentStatusRepository;
     }
 
+//    json {
+//    "firstName": "Phan Hong",
+//    "lastName": "Kisa",
+//    "phone": "+821040406980",
+//    "email": "thaiphan2712@gmail.com",
+//    "dentist": "Dr. Emily Carter",
+//    "contactMethod": "Email",
+//    "appointmentDate": "2026-04-17",
+//    "appointmentTime": "19:39",
+//    "reason": "sadfasdfads"
+//   }
+
     @Transactional
     public AppointmentResponse requestAppointment(AppointmentRequest request) {
-        validateRequest(request);
-        LocalDateTime appointmentDateTime = parseDateTime(request.appointmentDateTime());
+        validateAppointmentRequest(request);
 
-        Patient patient = patientRepository.findById(request.patientId())
-                .orElseThrow(() -> new IllegalArgumentException("Patient not found: " + request.patientId()));
+        // Parse date and time
 
-        Dentist dentist = dentistRepository.findById(request.dentistId())
-                .orElseThrow(() -> new IllegalArgumentException("Dentist not found: " + request.dentistId()));
+        LocalDateTime appointmentDateTime = LocalDateTime.parse(request.appointmentDate() + "T" + request.appointmentTime());
 
-        Surgery surgery = surgeryRepository.findById(request.surgeryId())
-                .orElseThrow(() -> new IllegalArgumentException("Surgery not found: " + request.surgeryId()));
+        // Find or create patient
+        Patient patient = findOrCreatePatientFromRequest(request);
 
+        // Map dentist name to dentist entity
+        Dentist dentist = mapDentistNameToEntity(request.dentist().replace("Dr. ", "").trim());
+
+        // Use default surgery (could be made configurable)
+        Surgery surgery = surgeryRepository.findById(1L)
+                .orElseThrow(() -> new IllegalStateException("Default surgery not found"));
+
+        // Check dentist availability
+        LocalDate weekDate = appointmentDateTime.toLocalDate();
+        LocalDateTime weekStart = weekDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
+        LocalDateTime weekEnd = weekStart.plusWeeks(1);
+
+        long dentistAppointments = appointmentRepository.countDentistAppointmentsBetween(
+                dentist.getUserId(),
+                weekStart,
+                weekEnd
+        );
+
+        if (dentistAppointments >= MAX_DENTIST_APPOINTMENTS_PER_WEEK) {
+            throw new BusinessRuleViolationException(
+                    "Dentist already has 5 appointments in the selected week"
+            );
+        }
+
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentDateTime(appointmentDateTime);
+        appointment.setPatient(patient);
+        appointment.setDentist(dentist);
+        appointment.setSurgery(surgery);
+        AppointmentStatus scheduled = appointmentStatusRepository.findByName("PENDING")
+                .orElseThrow(() -> new IllegalStateException("Required status PENDING not found"));
+        appointment.setStatus(scheduled);
+
+        Appointment saved = appointmentRepository.save(appointment);
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public AppointmentResponse requestPublicAppointment(PublicAppointmentRequest request) {
+        validatePublicRequest(request);
+
+        // Parse date and time
+        LocalDateTime appointmentDateTime = parseAppointmentDateTime(request.appointmentDate(), request.appointmentTime());
+
+        // Find or create patient
+        Patient patient = findOrCreatePatient(request);
+
+        // Map dentist name to dentist entity
+        Dentist dentist = mapDentistNameToEntity(request.dentist());
+
+        // Use default surgery (could be made configurable)
+        Surgery surgery = surgeryRepository.findById(1L)
+                .orElseThrow(() -> new IllegalStateException("Default surgery not found"));
+
+        // Check dentist availability
         LocalDate weekDate = appointmentDateTime.toLocalDate();
         LocalDateTime weekStart = weekDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
         LocalDateTime weekEnd = weekStart.plusWeeks(1);
@@ -148,17 +214,30 @@ public class AppointmentService {
                 .toList();
     }
 
-    private void validateRequest(AppointmentRequest request) {
+    private void validateAppointmentRequest(AppointmentRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("Appointment payload is required");
         }
-        requirePositive(request.patientId(), "patientId");
-        requirePositive(request.dentistId(), "dentistId");
-        requirePositive(request.surgeryId(), "surgeryId");
+        requireText(request.firstName(), "firstName");
+        requireText(request.lastName(), "lastName");
+        requireText(request.phone(), "phone");
+        requireText(request.email(), "email");
+        requireText(request.dentist(), "dentist");
+        requireText(request.appointmentDate(), "appointmentDate");
+        requireText(request.appointmentTime(), "appointmentTime");
+    }
 
-        if (request.appointmentDateTime() == null || request.appointmentDateTime().trim().isEmpty()) {
-            throw new IllegalArgumentException("appointmentDateTime is required");
+    private void validatePublicRequest(PublicAppointmentRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Appointment payload is required");
         }
+        requireText(request.firstName(), "firstName");
+        requireText(request.lastName(), "lastName");
+        requireText(request.phone(), "phone");
+        requireText(request.email(), "email");
+        requireText(request.dentist(), "dentist");
+        requireText(request.appointmentDate(), "appointmentDate");
+        requireText(request.appointmentTime(), "appointmentTime");
     }
 
     private void requirePositive(long value, String field) {
@@ -188,6 +267,130 @@ public class AppointmentService {
         } catch (DateTimeParseException ex) {
             throw new IllegalArgumentException("appointmentDate must be ISO-8601 date, e.g. 2026-04-20");
         }
+    }
+
+    private LocalDateTime parseAppointmentDateTime(String date, String time) {
+        try {
+            LocalDate appointmentDate = LocalDate.parse(requireText(date, "appointmentDate"));
+            return appointmentDate.atTime(LocalDateTime.parse(requireText(time, "appointmentTime")).toLocalTime());
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException("Invalid date or time format");
+        }
+    }
+
+    private Patient findOrCreatePatient(PublicAppointmentRequest request) {
+        return patientRepository.findByEmail(request.email())
+                .map(patient -> updatePatientInfo(patient, request))
+                .orElseGet(() -> createNewPatient(request));
+    }
+
+    private Patient updatePatientInfo(Patient patient, PublicAppointmentRequest request) {
+        boolean updated = false;
+
+        if (!patient.getUser().getFirstName().equals(request.firstName())) {
+            patient.getUser().setFirstName(request.firstName());
+            updated = true;
+        }
+        if (!patient.getUser().getLastName().equals(request.lastName())) {
+            patient.getUser().setLastName(request.lastName());
+            updated = true;
+        }
+        if (!patient.getUser().getPhoneNumber().equals(request.phone())) {
+            patient.getUser().setPhoneNumber(request.phone());
+            updated = true;
+        }
+        if (!patient.getUser().getEmail().equals(request.email())) {
+            patient.getUser().setEmail(request.email());
+            updated = true;
+        }
+
+        if (updated) {
+            userRepository.save(patient.getUser());
+        }
+
+        return patient;
+    }
+
+    private Patient createNewPatient(PublicAppointmentRequest request) {
+        Role patientRole = userRepository.findRoleByName("PATIENT")
+                .orElseThrow(() -> new IllegalStateException("Required role PATIENT not found"));
+
+        User user = new User();
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+        user.setPhoneNumber(request.phone());
+        user.setEmail(request.email());
+        user.setRole(patientRole);
+
+        User savedUser = userRepository.save(user);
+
+        Patient patient = new Patient();
+        patient.setUser(savedUser);
+        // PublicAppointmentRequest doesn't have mailing address or date of birth
+        patient.setMailingAddress("");
+        patient.setDateOfBirth(null);
+
+        return patientRepository.save(patient);
+    }
+
+    private Patient findOrCreatePatientFromRequest(AppointmentRequest request) {
+        return patientRepository.findByEmail(request.email())
+                .map(patient -> updatePatientInfoFromRequest(patient, request))
+                .orElseGet(() -> createNewPatientFromRequest(request));
+    }
+
+    private Patient updatePatientInfoFromRequest(Patient patient, AppointmentRequest request) {
+        boolean updated = false;
+
+        if (!patient.getUser().getFirstName().equals(request.firstName())) {
+            patient.getUser().setFirstName(request.firstName());
+            updated = true;
+        }
+        if (!patient.getUser().getLastName().equals(request.lastName())) {
+            patient.getUser().setLastName(request.lastName());
+            updated = true;
+        }
+        if (!patient.getUser().getPhoneNumber().equals(request.phone())) {
+            patient.getUser().setPhoneNumber(request.phone());
+            updated = true;
+        }
+        if (!patient.getUser().getEmail().equals(request.email())) {
+            patient.getUser().setEmail(request.email());
+            updated = true;
+        }
+
+        if (updated) {
+            userRepository.save(patient.getUser());
+        }
+
+        return patient;
+    }
+
+    private Patient createNewPatientFromRequest(AppointmentRequest request) {
+        Role patientRole = userRepository.findRoleByName("PATIENT")
+                .orElseThrow(() -> new IllegalStateException("Required role PATIENT not found"));
+
+        User user = new User();
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+        user.setPhoneNumber(request.phone());
+        user.setEmail(request.email());
+        user.setRole(patientRole);
+
+        User savedUser = userRepository.save(user);
+
+        Patient patient = new Patient();
+        patient.setUser(savedUser);
+        // No mailing address or date of birth in this request format
+        patient.setMailingAddress("");
+        patient.setDateOfBirth(null);
+
+        return patientRepository.save(patient);
+    }
+
+    private Dentist mapDentistNameToEntity(String dentistName) {
+        return dentistRepository.findByUser_FullName(dentistName)
+                .orElseThrow(() -> new IllegalArgumentException("Dentist not found: " + dentistName));
     }
 
     private AppointmentResponse toResponse(Appointment appointment) {

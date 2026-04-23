@@ -1,6 +1,6 @@
 package cs489.asd.lab.dto;
 
-public record AppointmentRequestInput(
+public record PublicAppointmentRequest(
         String firstName,
         String lastName,
         String phone,

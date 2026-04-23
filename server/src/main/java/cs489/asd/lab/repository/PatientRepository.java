@@ -67,4 +67,13 @@ public class PatientRepository {
         Patient managed = entityManager.contains(patient) ? patient : entityManager.merge(patient);
         entityManager.remove(managed);
     }
+
+    public Optional<Patient> findByEmail(String email) {
+        return entityManager.createQuery(
+                        "select p from Patient p join p.user u where u.email = :email",
+                        Patient.class)
+                .setParameter("email", email)
+                .getResultStream()
+                .findFirst();
+    }
 }
