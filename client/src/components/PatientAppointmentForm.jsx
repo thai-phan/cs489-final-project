@@ -87,7 +87,7 @@ export default function PatientAppointmentForm() {
     } catch (error) {
       setResult({
         type: "error",
-        message: "Error submitting request. Please try again.",
+        message: error.response.data.message,
       });
     } finally {
       setIsPending(false);

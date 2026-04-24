@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -20,8 +20,8 @@ services:
 
   backend:
     build:
-      context: server
-      dockerfile: server/Dockerfile
+      context: ./server
+      dockerfile: Dockerfile
     container_name: ads-backend
     environment:
       SPRING_PROFILES_ACTIVE: local
@@ -38,7 +38,7 @@ services:
   client:
     build:
       context: ./client
-      dockerfile: server/Dockerfile
+      dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: http://localhost:8080
         VITE_AUTH_LOGIN_PATH: /adsweb/api/v1/auth/login
