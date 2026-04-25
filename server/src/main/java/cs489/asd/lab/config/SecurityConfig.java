@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                         .requestMatchers("/adsweb/api/v1/auth/login").permitAll()
                         .requestMatchers("/adsweb/api/v1/auth/register").permitAll()
+                        .requestMatchers("/api/init").permitAll()
                         .requestMatchers("/graphiql", "/graphiql/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -74,7 +75,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "http://127.0.0.1:*",
+                "http://*.nip.io",
+                "http://*.sslip.io",
+                "http://*.localtest.me"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization"));

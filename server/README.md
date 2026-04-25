@@ -114,6 +114,35 @@ Remove containers and DB volume:
 docker compose down -v
 ```
 
+## Minikube / Kubernetes
+
+The repository includes `k8s/minikube.yaml`, which deploys PostgreSQL,
+the backend, and the React client into a local Minikube namespace.
+
+The backend pod is configured with:
+- `SPRING_PROFILES_ACTIVE=local`
+- `SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/cs489-project`
+- `SPRING_SQL_INIT_MODE=always`
+
+That startup mode is important because `src/main/resources/schema.sql` and
+`src/main/resources/data.sql` bootstrap the schema and seed data.
+
+Build and load the backend image before applying the manifest:
+
+```bash
+eval "$(minikube docker-env)"
+docker build -t ads-backend:minikube .
+kubectl apply -f ../k8s/minikube.yaml
+```
+
+Useful debugging commands:
+
+```bash
+kubectl -n ads-minikube get pods
+kubectl -n ads-minikube logs deploy/backend
+kubectl -n ads-minikube port-forward svc/backend 8080:8080
+```
+
 ## AWS Cloud Configuration
 
 The backend now includes `application-aws.properties` for cloud deployments.

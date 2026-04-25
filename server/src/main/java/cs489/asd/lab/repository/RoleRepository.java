@@ -1,29 +1,28 @@
 package cs489.asd.lab.repository;
 
 import cs489.asd.lab.model.Role;
-import cs489.asd.lab.model.Surgery;
+import cs489.asd.lab.model.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-@Repository
 @Transactional(readOnly = true)
-public class SurgeryRepository {
+@Repository
+public class RoleRepository {
 
     @PersistenceContext
-    private EntityManager entityManager;
+    EntityManager entityManager;
 
-    public Optional<Surgery> findById(long surgeryId) {
-        return Optional.ofNullable(entityManager.find(Surgery.class, surgeryId));
+    public Optional<Role> findByRoleName(String roleName) {
+        return Optional.empty();
     }
-
     @Transactional
-    public Surgery save(Surgery surgery) {
-        entityManager.persist(surgery);
-        return surgery;
+    public Role save(Role role) {
+        entityManager.persist(role);
+        return role;
     }
 }
-
